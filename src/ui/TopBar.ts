@@ -38,7 +38,6 @@ export class TopBar extends Phaser.GameObjects.Container {
     this.layout();
 
     scene.scale.on(Phaser.Scale.Events.RESIZE, this.handleResize, this);
-    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.destroy, this);
   }
 
   private build(): void {
@@ -158,7 +157,9 @@ export class TopBar extends Phaser.GameObjects.Container {
   }
 
   override destroy(fromScene?: boolean): void {
-    this.scene.scale.off(Phaser.Scale.Events.RESIZE, this.handleResize, this);
+    if (this.scene?.scale) {
+      this.scene.scale.off(Phaser.Scale.Events.RESIZE, this.handleResize, this);
+    }
     super.destroy(fromScene);
   }
 }
