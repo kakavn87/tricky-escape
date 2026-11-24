@@ -18,7 +18,6 @@ const config: Phaser.Types.Core.GameConfig = {
   },
   render: {
     antialias: true,
-    resolution: Math.min(window.devicePixelRatio || 1, 2),
     pixelArt: false,
     roundPixels: true,
   },
