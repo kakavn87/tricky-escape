@@ -22,9 +22,7 @@ const COLORS = {
 
 export class GameScene extends Phaser.Scene {
   private level = 1;
-  private keyObject?: Phaser.GameObjects.Container;
   private keyTaken = false;
-  private feedback?: Phaser.GameObjects.Text;
   private contentRoot!: Phaser.GameObjects.Container;
   private safeArea!: SafeArea;
 
@@ -645,20 +643,6 @@ export class GameScene extends Phaser.Scene {
         repeat: 3,
       });
     }
-  }
-
-  private showFeedback(message: string): void {
-    this.feedback?.destroy();
-    this.feedback = this.addText(this.DESIGN_WIDTH / 2, 535, message, {
-      fontFamily: "Nunito",
-      fontSize: "15px",
-      fontStyle: "800",
-      color: "#ffffff",
-      backgroundColor: "#2D2424",
-      padding: { left: 14, right: 14, top: 9, bottom: 9 },
-      align: "center",
-      wordWrap: { width: this.DESIGN_WIDTH - 45 },
-    }).setOrigin(0.5).setDepth(200);
   }
 
   private success(message: string): void {
