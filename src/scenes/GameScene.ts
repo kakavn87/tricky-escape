@@ -214,6 +214,12 @@ export class GameScene extends Phaser.Scene {
     key.setSize(52, 52).setInteractive({ useHandCursor: true });
     this.input.setDraggable(key);
 
+    key.on("dragstart", () => {
+      // Stop the idle floating animation while dragging so it cannot fight
+      // the pointer's Y coordinate.
+      this.tweens.killTweensOf(key);
+    });
+
     key.on("drag", (_pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
       const localX = (dragX - this.contentRoot.x) / this.contentRoot.scaleX;
       const localY = (dragY - this.contentRoot.y) / this.contentRoot.scaleY;
@@ -231,6 +237,7 @@ export class GameScene extends Phaser.Scene {
           y: 305,
           duration: 280,
           ease: "Back.easeOut",
+          onComplete: () => this.animateKeyReveal(key),
         });
       }
     });
