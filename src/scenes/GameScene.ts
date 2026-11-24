@@ -617,7 +617,8 @@ export class GameScene extends Phaser.Scene {
   private success(message: string): void {
     const { width, height } = this.scale;
 
-    this.add.rectangle(width / 2, height / 2, width, height, 0x07111f, 0.68)
+    const overlay = this.add
+      .rectangle(width / 2, height / 2, width, height, 0x07111f, 0.68)
       .setDepth(100);
 
     this.add.text(width / 2, height / 2 + 5, message, {
@@ -629,22 +630,52 @@ export class GameScene extends Phaser.Scene {
       wordWrap: { width: width - 70 },
     }).setOrigin(0.5).setDepth(101);
 
-    const next = this.add.text(
-      width / 2,
-      height / 2 + 105,
+    const nextLevel = this.level < 3 ? this.level + 1 : 1;
+    const button = this.add.container(width / 2, height / 2 + 105).setDepth(101);
+
+    const shadow = this.add.graphics();
+    shadow.fillStyle(0x8f6a12, 0.9);
+    shadow.fillRoundedRect(-96, -31 + 7, 192, 62, 12);
+
+    const plate = this.add.graphics();
+    plate.fillStyle(COLORS.yellow, 1);
+    plate.lineStyle(3, COLORS.ink, 1);
+    plate.fillRoundedRect(-96, -31, 192, 62, 12);
+    plate.strokeRoundedRect(-96, -31, 192, 62, 12);
+
+    const label = this.add.text(
+      0,
+      0,
       this.level < 3 ? "NEXT LEVEL  →" : "PLAY AGAIN  ↻",
       {
         fontFamily: "Nunito",
         fontSize: "19px",
         fontStyle: "900",
         color: "#2D2424",
-        backgroundColor: "#FFD93D",
-        padding: { left: 22, right: 22, top: 14, bottom: 14 },
       },
-    ).setOrigin(0.5).setDepth(101).setInteractive({ useHandCursor: true });
+    ).setOrigin(0.5);
 
-    next.on("pointerdown", () => this.scene.restart({ level: this.level < 3 ? this.level + 1 : 1 }));
-    this.tweens.add({ targets: next, scale: 1.05, duration: 650, yoyo: true, repeat: -1 });
+    button.add([shadow, plate, label]);
+    button.setSize(192, 62);
+    button.setInteractive(
+      new Phaser.Geom.Rectangle(-96, -31, 192, 62),
+      Phaser.Geom.Rectangle.Contains,
+    );
+
+    button.on("pointerdown", () => {
+      button.disableInteractive();
+      overlay.destroy();
+      this.scene.start("GameScene", { level: nextLevel });
+    });
+
+    this.tweens.add({
+      targets: button,
+      scale: 1.04,
+      duration: 650,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
 
     for (let i = 0; i < 18; i++) {
       const particle = this.add.circle(
