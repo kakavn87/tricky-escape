@@ -183,7 +183,7 @@ export class GameScene extends Phaser.Scene {
       fontFamily: "Arial",
     }).setOrigin(0.5).setInteractive({ draggable: true, useHandCursor: true });
     bottle.on("pointerdown", () => this.showFeedback("Maybe the guard needs a little drink?"));
-    bottle.on("drag", (pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
+    bottle.on("drag", (_pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
       bottle.setPosition(dragX, dragY);
     });
     bottle.on("dragend", () => {
