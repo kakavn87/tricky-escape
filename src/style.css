@@ -18,4 +18,10 @@ html, body, #app {
   background: radial-gradient(circle at 50% 12%, #263b58 0%, #141f32 46%, #0d1422 100%);
 }
 body { touch-action: none; user-select: none; -webkit-user-select: none; }
-canvas { display: block; touch-action: none; }
+canvas {
+  display: block;
+  touch-action: none;
+  image-rendering: auto;
+  -webkit-tap-highlight-color: transparent;
+  filter: saturate(1.06) contrast(1.03);
+}
