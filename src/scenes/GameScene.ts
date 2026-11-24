@@ -523,28 +523,6 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  private createDust(x: number, y: number): void {
-    for (let i = 0; i < 10; i++) {
-      const p = this.add.circle(
-        x + Phaser.Math.Between(-45, 45),
-        y + Phaser.Math.Between(-8, 8),
-        Phaser.Math.Between(2, 5),
-        0xd7a06c,
-        0.7,
-      ).setDepth(30);
-
-      this.tweens.add({
-        targets: p,
-        x: p.x + Phaser.Math.Between(-35, 35),
-        y: p.y + Phaser.Math.Between(-25, 22),
-        alpha: 0,
-        scale: 0.25,
-        duration: Phaser.Math.Between(350, 650),
-        onComplete: () => p.destroy(),
-      });
-    }
-  }
-
   private createGuardPuzzle(): void {
     const cx = this.DESIGN_WIDTH / 2;
 
