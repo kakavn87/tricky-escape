@@ -2,10 +2,22 @@ import Phaser from "phaser";
 import { TopBar } from "../ui/TopBar";
 import { getSafeArea, type SafeArea } from "../ui/SafeArea";
 
-type LevelData = {
-  title: string;
-  instruction: string;
-  room: number;
+const COLORS = {
+  ink: 0x2d2424,
+  cream: 0xfaf6f0,
+  wall: 0xf7dfc0,
+  wallShadow: 0xe9bd8b,
+  floor: 0xe5b98a,
+  floorLine: 0xc58a52,
+  wood: 0x9a6545,
+  woodDark: 0x70462f,
+  door: 0x5d83b2,
+  doorDark: 0x3c5b82,
+  yellow: 0xffd93d,
+  skin: 0xf2bd8e,
+  shirt: 0x6e8fd0,
+  pants: 0x4f5f83,
+  white: 0xffffff,
 };
 
 export class GameScene extends Phaser.Scene {
@@ -18,12 +30,6 @@ export class GameScene extends Phaser.Scene {
 
   private readonly DESIGN_WIDTH = 390;
   private readonly DESIGN_HEIGHT = 760;
-
-  private levelData: Record<number, LevelData> = {
-    1: { title: "THE MISSING KEY", instruction: "The key is hiding somewhere. Look closely!", room: 1 },
-    2: { title: "A SLEEPY GUARD", instruction: "Find a way to distract the guard.", room: 2 },
-    3: { title: "THE FOURTH DOOR", instruction: "Three doors. One sneaky way out.", room: 3 },
-  };
 
   constructor() {
     super("GameScene");
@@ -38,6 +44,7 @@ export class GameScene extends Phaser.Scene {
     this.layoutMetrics();
     this.drawRoom();
     this.createHud();
+
     this.contentRoot = this.add.container(0, 0).setDepth(10);
     this.createLevel();
     this.layoutContent();
@@ -60,11 +67,12 @@ export class GameScene extends Phaser.Scene {
 
   private layoutContent(): void {
     if (!this.contentRoot) return;
+
     const scale = this.contentScale;
     this.contentRoot.setScale(scale);
     this.contentRoot.setPosition(
       this.safeArea.centerX - (this.DESIGN_WIDTH * scale) / 2,
-      this.safeArea.top + Math.max(8, (this.safeArea.height - this.DESIGN_HEIGHT * scale) / 2),
+      this.safeArea.top + Math.max(4, (this.safeArea.height - this.DESIGN_HEIGHT * scale) / 2),
     );
   }
 
@@ -78,49 +86,47 @@ export class GameScene extends Phaser.Scene {
     this.scale.off(Phaser.Scale.Events.RESIZE, this.handleResize, this);
   }
 
+  /**
+   * Full-bleed room. The room owns the entire canvas; TopBar sits above it.
+   * There is intentionally no dark background strip above/below the room.
+   */
   private drawRoom(): void {
     const { width, height } = this.scale;
-    const top = this.safeArea.top;
-    const bottom = height - this.safeArea.bottom;
-    const floorY = top + (bottom - top) * 0.58;
+    const floorY = Math.round(height * 0.58);
 
-    this.add.rectangle(width / 2, height / 2, width, height, 0x14243b).setDepth(-20);
+    this.add.rectangle(width / 2, height / 2, width, height, COLORS.floor).setDepth(-30);
 
-    this.add.rectangle(width / 2, (top + floorY) / 2, width, floorY - top, 0x76503f)
-      .setStrokeStyle(6, 0x4b2c20).setDepth(-19);
+    this.add.rectangle(width / 2, floorY / 2, width, floorY, COLORS.wall)
+      .setStrokeStyle(6, COLORS.woodDark)
+      .setDepth(-29);
 
-    this.add.rectangle(width / 2, (floorY + bottom) / 2, width, bottom - floorY, 0xf0c477)
-      .setStrokeStyle(6, 0x6b432c).setDepth(-19);
+    this.add.rectangle(width / 2, floorY + (height - floorY) / 2, width, height - floorY, COLORS.floor)
+      .setStrokeStyle(6, COLORS.woodDark)
+      .setDepth(-29);
 
-    this.add.rectangle(width / 2, floorY + 2, width, 8, 0xd59a50).setDepth(-18);
+    this.add.rectangle(width / 2, floorY, width, 8, COLORS.floorLine).setDepth(-28);
 
-    for (let x = 24; x < width; x += Math.max(42, width / 34)) {
-      this.add.rectangle(x, top + 38, 3, Math.min(76, (floorY - top) * 0.52), 0x9d6c55, 0.42)
-        .setDepth(-18);
+    // Subtle wall panels.
+    const panelStep = Math.max(44, width / 34);
+    for (let x = 20; x < width + panelStep; x += panelStep) {
+      this.add.rectangle(x, Math.min(floorY - 28, 74), 3, Math.min(82, floorY * 0.38), COLORS.wallShadow, 0.42)
+        .setDepth(-28);
     }
 
-    this.add.text(width / 2, top + 22, "ROOM 01", {
-      fontFamily: "Nunito",
-      fontSize: "13px",
-      fontStyle: "900",
-      color: "#fff4d6",
-      letterSpacing: 3,
-    }).setOrigin(0.5).setDepth(-17);
+    // Floor boards.
+    const boardStep = Math.max(58, width / 22);
+    for (let x = -boardStep; x < width + boardStep; x += boardStep) {
+      this.add.line(0, 0, x, floorY + 24, x + boardStep * 0.7, height, COLORS.floorLine, 0.16)
+        .setLineWidth(2)
+        .setDepth(-28);
+    }
   }
 
   private createHud(): void {
     new TopBar(this, {
       level: this.level,
       onMenu: () => this.scene.start("MenuScene"),
-      onHint: () => {
-        this.showFeedback(
-          this.level === 1
-            ? "Hint: investigate the picture."
-            : this.level === 2
-              ? "Hint: the guard may be distracted."
-              : "Hint: don't assume the exit has to be a door.",
-        );
-      },
+      onHint: () => this.showVisualHint(),
     });
   }
 
@@ -160,19 +166,6 @@ export class GameScene extends Phaser.Scene {
     return obj;
   }
 
-  private addEllipse(
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    color: number,
-    alpha = 1,
-  ): Phaser.GameObjects.Ellipse {
-    const obj = this.add.ellipse(x, y, width, height, color, alpha);
-    this.contentRoot.add(obj);
-    return obj;
-  }
-
   private addContainer(x: number, y: number): Phaser.GameObjects.Container {
     const obj = this.add.container(x, y);
     this.contentRoot.add(obj);
@@ -180,26 +173,6 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createLevel(): void {
-    const data = this.levelData[this.level] ?? this.levelData[3];
-
-    this.addText(this.DESIGN_WIDTH / 2, 430, data.title, {
-      fontFamily: "Fredoka",
-      fontSize: "24px",
-      fontStyle: "700",
-      color: "#fff8e8",
-      stroke: "#4a2a1e",
-      strokeThickness: 3,
-    }).setOrigin(0.5);
-
-    this.addText(this.DESIGN_WIDTH / 2, 466, data.instruction, {
-      fontFamily: "Nunito",
-      fontSize: "14px",
-      fontStyle: "700",
-      color: "#fff8e8",
-      align: "center",
-      wordWrap: { width: this.DESIGN_WIDTH - 44 },
-    }).setOrigin(0.5);
-
     if (this.level === 1) this.createKeyPuzzle();
     else if (this.level === 2) this.createGuardPuzzle();
     else this.createDoorPuzzle();
@@ -207,64 +180,78 @@ export class GameScene extends Phaser.Scene {
 
   private createKeyPuzzle(): void {
     const cx = this.DESIGN_WIDTH / 2;
+
+    // Door + large lock.
+    this.createDoor(cx, 652, 142, 190);
+
+    // Character: expressive, simple vector cartoon.
+    this.createCharacter(cx + 92, 620);
+
+    // Picture frame, slightly tilted.
     const frame = this.addContainer(cx, 220);
-    const shadow = this.addRect(3, 9, 172, 145, 0x422e28, 0.45);
-    const picture = this.addRect(0, 0, 172, 145, 0xf0cf86).setStrokeStyle(10, 0x8b5838);
-    const art = this.addText(0, -4, "🌄", { fontSize: "66px", fontFamily: "Arial" }).setOrigin(0.5);
-    frame.add([shadow, picture, art]);
+    frame.setAngle(-2.5);
 
-    const keyClue = this.addText(cx + 78, 293, "🔑", {
-      fontSize: "18px",
-      fontFamily: "Arial",
-    }).setOrigin(0.5).setAlpha(0.9);
+    const shadow = this.add.graphics();
+    shadow.fillStyle(COLORS.ink, 0.18);
+    shadow.fillRoundedRect(-89, -74, 178, 150, 14);
 
-    const tapHint = this.addText(cx, 330, "👆  SOMETHING IS BEHIND THE PICTURE", {
-      fontFamily: "Nunito",
-      fontSize: "11px",
-      fontStyle: "900",
-      color: "#fff1c9",
-      backgroundColor: "#17243a",
-      padding: { left: 9, right: 9, top: 6, bottom: 6 },
-    }).setOrigin(0.5);
+    const border = this.add.graphics();
+    border.fillStyle(COLORS.wood, 1);
+    border.lineStyle(3, COLORS.ink, 1);
+    border.fillRoundedRect(-86, -72, 172, 144, 10);
+    border.strokeRoundedRect(-86, -72, 172, 144, 10);
 
+    const inner = this.add.graphics();
+    inner.fillStyle(0xf7d58d, 1);
+    inner.fillRoundedRect(-70, -56, 140, 112, 5);
+    inner.lineStyle(3, 0xb77945, 1);
+    inner.strokeRoundedRect(-70, -56, 140, 112, 5);
+
+    const landscape = this.createLandscapeArt();
+    frame.add([shadow, border, inner, landscape]);
+
+    // Key is genuinely hidden behind the frame.
+    const key = this.createKeyGraphic(0, 0);
+    key.setVisible(false);
+    key.setPosition(cx + 76, 305);
+    this.contentRoot.add(key);
+    this.keyObject = key;
+
+    // Gentle visual affordance, not explanatory text.
+    const frameGlow = this.add.graphics();
+    frameGlow.lineStyle(3, COLORS.yellow, 0.2);
+    frameGlow.strokeRoundedRect(cx - 91, 147, 182, 150, 14);
+    frameGlow.setDepth(-1);
     this.tweens.add({
-      targets: [frame, keyClue],
-      y: "-=4",
-      duration: 650,
+      targets: frameGlow,
+      alpha: 0.05,
+      duration: 900,
       yoyo: true,
       repeat: -1,
       ease: "Sine.easeInOut",
     });
 
-    picture.setInteractive({ useHandCursor: true }).on("pointerdown", () => {
-      if (this.keyTaken) return;
+    frame.setSize(180, 150).setInteractive({ useHandCursor: true });
+    frame.on("pointerdown", () => {
+      if (this.keyTaken || key.visible) return;
+
       this.tweens.add({
         targets: frame,
-        angle: 8,
-        duration: 90,
-        yoyo: true,
-        repeat: 2,
+        angle: 7,
+        y: 232,
+        duration: 180,
+        ease: "Quad.easeOut",
         onComplete: () => {
-          keyClue.setVisible(false);
-          tapHint.setVisible(false);
-          this.keyObject?.setVisible(true);
-          this.showFeedback("You found it! Now drag the key to the EXIT door.");
+          frame.setAngle(7);
+          key.setVisible(true);
+          this.animateKeyReveal(key);
+          this.createDust(cx, 285);
         },
       });
     });
 
-    const key = this.addContainer(cx + 78, 310);
-    const keyShadow = this.addEllipse(3, 7, 38, 13, 0x332211, 0.3);
-    const keyIcon = this.addText(0, 0, "🗝️", { fontSize: "36px", fontFamily: "Arial" }).setOrigin(0.5);
-    key.add([keyShadow, keyIcon]);
-    key.setVisible(false);
-    key.setSize(46, 46).setInteractive({ useHandCursor: true });
+    key.setSize(52, 52).setInteractive({ useHandCursor: true });
     this.input.setDraggable(key);
-
-    key.on("pointerdown", () => {
-      if (!key.visible || this.keyTaken) return;
-      this.showFeedback("Now drag the key to the EXIT door below.");
-    });
 
     key.on("drag", (_pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
       const localX = (dragX - this.contentRoot.x) / this.contentRoot.scaleX;
@@ -273,188 +260,418 @@ export class GameScene extends Phaser.Scene {
     });
 
     key.on("dragend", () => {
-      if (Math.abs(key.x - cx) < 85 && key.y > 575 && key.y < 750) {
+      if (Math.abs(key.x - cx) < 82 && key.y > 570) {
         this.keyTaken = true;
         this.success("DOOR UNLOCKED!");
       } else {
-        this.tweens.add({ targets: key, x: cx + 78, y: 310, duration: 250, ease: "Back" });
+        this.tweens.add({
+          targets: key,
+          x: cx + 76,
+          y: 305,
+          duration: 280,
+          ease: "Back.easeOut",
+        });
       }
     });
-    this.keyObject = key;
+  }
 
-    this.addRect(cx, 690, 138, 150, 0x4c342c).setStrokeStyle(8, 0x8d5a36);
-    this.addCircle(cx + 38, 690, 6, 0xffd56b);
-    this.addText(cx, 620, "DRAG KEY HERE", {
-      fontFamily: "Nunito",
-      fontSize: "13px",
-      fontStyle: "900",
-      color: "#fff1c9",
-      backgroundColor: "#17243a",
-      padding: { left: 10, right: 10, top: 7, bottom: 7 },
-    }).setOrigin(0.5);
-    this.addText(cx, 752, "EXIT", {
-      fontFamily: "Nunito",
-      fontSize: "14px",
-      fontStyle: "900",
-      color: "#fff7db",
-    }).setOrigin(0.5);
+  private createLandscapeArt(): Phaser.GameObjects.Graphics {
+    const g = this.add.graphics();
+
+    // Sun.
+    g.fillStyle(0xffa94d, 1);
+    g.fillCircle(28, -23, 18);
+    g.lineStyle(3, COLORS.ink, 1);
+    g.strokeCircle(28, -23, 18);
+
+    // Mountains.
+    g.fillStyle(0x4e9b70, 1);
+    g.beginPath();
+    g.moveTo(-61, 38);
+    g.lineTo(-18, -14);
+    g.lineTo(6, 15);
+    g.lineTo(31, -7);
+    g.lineTo(68, 38);
+    g.closePath();
+    g.fillPath();
+
+    g.fillStyle(0x2f765b, 1);
+    g.beginPath();
+    g.moveTo(-61, 38);
+    g.lineTo(-23, 5);
+    g.lineTo(0, 38);
+    g.closePath();
+    g.fillPath();
+
+    // Snow cap / highlight.
+    g.fillStyle(0xfff4d5, 1);
+    g.beginPath();
+    g.moveTo(-18, -14);
+    g.lineTo(-7, 1);
+    g.lineTo(-17, -1);
+    g.lineTo(-23, 5);
+    g.closePath();
+    g.fillPath();
+
+    return g;
+  }
+
+  private createDoor(
+    cx: number,
+    cy: number,
+    width: number,
+    height: number,
+  ): Phaser.GameObjects.Container {
+    const door = this.addContainer(cx, cy);
+
+    const shadow = this.add.graphics();
+    shadow.fillStyle(COLORS.ink, 0.22);
+    shadow.fillRoundedRect(-width / 2 + 5, -height / 2 + 8, width, height, 12);
+
+    const panel = this.add.graphics();
+    panel.fillStyle(COLORS.door, 1);
+    panel.lineStyle(4, COLORS.ink, 1);
+    panel.fillRoundedRect(-width / 2, -height / 2, width, height, 10);
+    panel.strokeRoundedRect(-width / 2, -height / 2, width, height, 10);
+
+    // Door inset.
+    panel.lineStyle(3, COLORS.doorDark, 1);
+    panel.strokeRoundedRect(-width / 2 + 15, -height / 2 + 15, width - 30, height - 30, 7);
+
+    // Large lock plate.
+    panel.fillStyle(0xfff1c4, 1);
+    panel.lineStyle(3, COLORS.ink, 1);
+    panel.fillRoundedRect(-25, -18, 50, 62, 12);
+    panel.strokeRoundedRect(-25, -18, 50, 62, 12);
+
+    // Lock shackle.
+    panel.lineStyle(8, COLORS.ink, 1);
+    panel.beginPath();
+    panel.arc(0, -16, 15, Math.PI, 0, false);
+    panel.strokePath();
+
+    // Keyhole.
+    panel.fillStyle(COLORS.ink, 1);
+    panel.fillCircle(0, 13, 7);
+    panel.fillRect(-3, 13, 6, 13);
+
+    door.add([shadow, panel]);
+    this.contentRoot.add(door);
+    return door;
+  }
+
+  private createCharacter(x: number, y: number): Phaser.GameObjects.Container {
+    const c = this.addContainer(x, y);
+
+    const shadow = this.add.ellipse(0, 65, 58, 15, COLORS.ink, 0.18);
+    const legs = this.add.graphics();
+    legs.fillStyle(COLORS.pants, 1);
+    legs.lineStyle(3, COLORS.ink, 1);
+    legs.fillRoundedRect(-23, 26, 18, 40, 7);
+    legs.fillRoundedRect(5, 26, 18, 40, 7);
+    legs.strokeRoundedRect(-23, 26, 18, 40, 7);
+    legs.strokeRoundedRect(5, 26, 18, 40, 7);
+
+    const body = this.add.graphics();
+    body.fillStyle(COLORS.shirt, 1);
+    body.lineStyle(3, COLORS.ink, 1);
+    body.fillRoundedRect(-29, -8, 58, 54, 18);
+    body.strokeRoundedRect(-29, -8, 58, 54, 18);
+
+    const head = this.add.graphics();
+    head.fillStyle(COLORS.skin, 1);
+    head.lineStyle(3, COLORS.ink, 1);
+    head.fillCircle(0, -35, 34);
+    head.strokeCircle(0, -35, 34);
+
+    // Hair.
+    head.fillStyle(0x5a3b2e, 1);
+    head.beginPath();
+    head.arc(0, -48, 31, Math.PI, 0, false);
+    head.fillPath();
+
+    // Eyes.
+    head.fillStyle(COLORS.white, 1);
+    head.fillCircle(-12, -36, 8);
+    head.fillCircle(12, -36, 8);
+    head.fillStyle(COLORS.ink, 1);
+    head.fillCircle(-10, -35, 3);
+    head.fillCircle(10, -35, 3);
+
+    // Confused mouth.
+    head.lineStyle(3, COLORS.ink, 1);
+    head.beginPath();
+    head.arc(0, -20, 8, Math.PI * 1.05, Math.PI * 1.95, false);
+    head.strokePath();
+
+    // One hand scratching head.
+    const arm = this.add.graphics();
+    arm.lineStyle(8, COLORS.skin, 1);
+    arm.lineCap = 1;
+    arm.beginPath();
+    arm.moveTo(24, 3);
+    arm.lineTo(39, -27);
+    arm.lineTo(27, -47);
+    arm.strokePath();
+
+    c.add([shadow, legs, body, head, arm]);
+    this.contentRoot.add(c);
+
+    this.tweens.add({
+      targets: arm,
+      angle: { from: -3, to: 3 },
+      duration: 850,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
+
+    return c;
+  }
+
+  private createKeyGraphic(x: number, y: number): Phaser.GameObjects.Container {
+    const key = this.addContainer(x, y);
+
+    const shadow = this.add.graphics();
+    shadow.fillStyle(COLORS.ink, 0.18);
+    shadow.fillCircle(3, 5, 13);
+    shadow.fillRoundedRect(9, 0, 35, 10, 4);
+
+    const g = this.add.graphics();
+    g.fillStyle(COLORS.yellow, 1);
+    g.lineStyle(3, COLORS.ink, 1);
+    g.fillCircle(0, 0, 14);
+    g.strokeCircle(0, 0, 14);
+    g.fillRoundedRect(8, -5, 34, 10, 4);
+    g.strokeRoundedRect(8, -5, 34, 10, 4);
+
+    g.fillStyle(COLORS.cream, 1);
+    g.fillCircle(0, 0, 5);
+
+    g.fillStyle(COLORS.yellow, 1);
+    g.fillRect(27, -4, 5, 8);
+    g.fillRect(36, -4, 5, 8);
+
+    key.add([shadow, g]);
+    return key;
+  }
+
+  private animateKeyReveal(key: Phaser.GameObjects.Container): void {
+    const glow = this.add.circle(key.x, key.y, 25, COLORS.yellow, 0.18).setDepth(key.depth - 1);
+    this.tweens.add({
+      targets: glow,
+      scale: 1.35,
+      alpha: 0,
+      duration: 750,
+      repeat: -1,
+      ease: "Sine.easeOut",
+    });
+
+    this.tweens.add({
+      targets: key,
+      y: key.y - 7,
+      duration: 650,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
+  }
+
+  private createDust(x: number, y: number): void {
+    for (let i = 0; i < 9; i++) {
+      const p = this.add.circle(
+        x + Phaser.Math.Between(-55, 55),
+        y + Phaser.Math.Between(-8, 8),
+        Phaser.Math.Between(2, 5),
+        0xf4d6b2,
+        0.7,
+      ).setDepth(20);
+
+      this.tweens.add({
+        targets: p,
+        x: p.x + Phaser.Math.Between(-30, 30),
+        y: p.y + Phaser.Math.Between(-25, 20),
+        alpha: 0,
+        scale: 0.3,
+        duration: Phaser.Math.Between(350, 600),
+        onComplete: () => p.destroy(),
+      });
+    }
   }
 
   private createGuardPuzzle(): void {
     const cx = this.DESIGN_WIDTH / 2;
-    this.addRect(cx, 220, 190, 130, 0x9f734e).setStrokeStyle(8, 0x70482e);
-    this.addText(cx, 310, "DRAG BOTTLE TO GUARD", {
-      fontFamily: "Nunito",
-      fontSize: "12px",
-      fontStyle: "900",
-      color: "#fff1c9",
-      backgroundColor: "#17243a",
-      padding: { left: 9, right: 9, top: 6, bottom: 6 },
-    }).setOrigin(0.5);
-    this.addText(cx, 212, "😴", { fontSize: "82px", fontFamily: "Arial" }).setOrigin(0.5);
 
-    const bottle = this.addText(cx - 110, 360, "🍼", {
-      fontSize: "48px",
-      fontFamily: "Arial",
-    }).setOrigin(0.5).setInteractive({ draggable: true, useHandCursor: true });
+    this.createDoor(cx, 650, 142, 190);
+    this.createCharacter(cx + 90, 615);
 
-    bottle.on("pointerdown", () => this.showFeedback("Maybe the guard needs a little drink?"));
+    const guard = this.addContainer(cx - 75, 265);
+    const body = this.add.graphics();
+    body.fillStyle(0x7f91a8, 1);
+    body.lineStyle(3, COLORS.ink, 1);
+    body.fillRoundedRect(-38, 8, 76, 70, 22);
+    body.strokeRoundedRect(-38, 8, 76, 70, 22);
+
+    const head = this.add.graphics();
+    head.fillStyle(COLORS.skin, 1);
+    head.lineStyle(3, COLORS.ink, 1);
+    head.fillCircle(0, -20, 34);
+    head.strokeCircle(0, -20, 34);
+
+    head.lineStyle(3, COLORS.ink, 1);
+    head.beginPath();
+    head.moveTo(-14, -18);
+    head.lineTo(-5, -14);
+    head.moveTo(14, -18);
+    head.lineTo(5, -14);
+    head.strokePath();
+
+    head.fillStyle(COLORS.ink, 1);
+    head.fillCircle(-12, -6, 2);
+    head.fillCircle(12, -6, 2);
+
+    guard.add([body, head]);
+    this.contentRoot.add(guard);
+
+    // Bottle.
+    const bottle = this.createBottle(cx - 105, 390);
+    bottle.setInteractive({ useHandCursor: true });
+    this.input.setDraggable(bottle);
+
     bottle.on("drag", (_pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
       bottle.setPosition(
         (dragX - this.contentRoot.x) / this.contentRoot.scaleX,
         (dragY - this.contentRoot.y) / this.contentRoot.scaleY,
       );
     });
+
     bottle.on("dragend", () => {
-      if (bottle.y < 290) {
+      if (bottle.y < 320) {
+        this.success("THE GUARD IS DISTRACTED!");
+      } else {
         this.tweens.add({
           targets: bottle,
-          x: cx,
-          y: 220,
-          duration: 400,
-          onComplete: () => {
-            this.addText(cx, 220, "😋", { fontSize: "78px" }).setOrigin(0.5);
-            this.success("THE GUARD IS DISTRACTED!");
-          },
+          x: cx - 105,
+          y: 390,
+          duration: 250,
+          ease: "Back.easeOut",
         });
-      } else {
-        this.tweens.add({ targets: bottle, x: cx - 110, y: 360, duration: 250 });
       }
     });
-    this.input.setDraggable(bottle);
+  }
 
-    this.addText(cx, 665, "🚪", { fontSize: "100px" }).setOrigin(0.5);
-    this.addText(cx, 605, "EXIT", {
-      fontFamily: "Nunito",
-      fontSize: "13px",
-      fontStyle: "900",
-      color: "#fff7db",
-    }).setOrigin(0.5);
+  private createBottle(x: number, y: number): Phaser.GameObjects.Container {
+    const bottle = this.addContainer(x, y);
+
+    const shadow = this.add.ellipse(0, 31, 42, 11, COLORS.ink, 0.18);
+    const g = this.add.graphics();
+
+    g.fillStyle(0x8fd3f4, 1);
+    g.lineStyle(3, COLORS.ink, 1);
+    g.fillRoundedRect(-20, -20, 40, 55, 10);
+    g.strokeRoundedRect(-20, -20, 40, 55, 10);
+
+    g.fillStyle(0x8fd3f4, 1);
+    g.fillRoundedRect(-9, -34, 18, 17, 5);
+    g.strokeRoundedRect(-9, -34, 18, 17, 5);
+
+    g.fillStyle(0xfff0b8, 1);
+    g.fillRoundedRect(-17, -8, 34, 20, 5);
+
+    bottle.add([shadow, g]);
+    this.contentRoot.add(bottle);
+    return bottle;
   }
 
   private createDoorPuzzle(): void {
     const cx = this.DESIGN_WIDTH / 2;
-    const doors = [cx - 112, cx, cx + 112];
+    const doorXs = [cx - 112, cx, cx + 112];
 
-    doors.forEach((x, index) => {
-      const door = this.addContainer(x, 275);
-      const panel = this.addRect(0, 0, 84, 148, 0x5a78a2).setStrokeStyle(6, 0x344e73);
-      const knob = this.addCircle(28, 0, 5, 0xf5d28a);
-      const number = this.addText(0, -48, String(index + 1), {
-        fontFamily: "Nunito",
-        fontSize: "18px",
-        fontStyle: "900",
-        color: "#ffffff",
-      }).setOrigin(0.5);
-      door.add([panel, knob, number]);
-
-      panel.setInteractive({ useHandCursor: true }).on("pointerdown", () => {
-        this.showFeedback("Nope! Think outside the room...");
-        this.tweens.add({ targets: door, x: x + 5, duration: 45, yoyo: true, repeat: 3 });
+    doorXs.forEach((x) => {
+      const door = this.createDoor(x, 330, 84, 148);
+      const panel = door.list[1] as Phaser.GameObjects.Graphics;
+      panel.setInteractive(new Phaser.Geom.Rectangle(-42, -74, 84, 148), Phaser.Geom.Rectangle.Contains);
+      panel.on("pointerdown", () => {
+        this.tweens.add({
+          targets: door,
+          x: x + 5,
+          duration: 45,
+          yoyo: true,
+          repeat: 3,
+        });
       });
     });
 
-    const title = this.addText(cx, 150, "THREE DOORS", {
-      fontFamily: "Fredoka",
-      fontSize: "30px",
-      fontStyle: "700",
-      color: "#ffffff",
-      backgroundColor: "#684333",
-      padding: { left: 12, right: 12, top: 7, bottom: 7 },
-    }).setOrigin(0.5).setInteractive({ draggable: true, useHandCursor: true });
+    // The trick is visual: the character is looking above the doors.
+    this.createCharacter(cx, 610);
 
-    const dragHint = this.addText(cx, 190, "↕  DRAG THIS DOWN", {
-      fontFamily: "Nunito",
-      fontSize: "12px",
-      fontStyle: "900",
-      color: "#fff1c9",
-      backgroundColor: "#17243a",
-      padding: { left: 9, right: 9, top: 6, bottom: 6 },
-    }).setOrigin(0.5);
+    const ceilingExit = this.add.graphics();
+    ceilingExit.fillStyle(COLORS.cream, 1);
+    ceilingExit.lineStyle(3, COLORS.ink, 1);
+    ceilingExit.fillRoundedRect(cx - 62, 105, 124, 44, 12);
+    ceilingExit.strokeRoundedRect(cx - 62, 105, 124, 44, 12);
+    ceilingExit.fillStyle(COLORS.yellow, 1);
+    ceilingExit.fillCircle(cx, 127, 12);
+    ceilingExit.setInteractive(new Phaser.Geom.Rectangle(cx - 62, 105, 124, 44), Phaser.Geom.Rectangle.Contains);
+    ceilingExit.on("pointerdown", () => this.success("YOU FOUND THE FOURTH DOOR!"));
 
-    const dropZone = this.addRect(cx, 410, 220, 58, 0x2f6f55, 0.75).setStrokeStyle(3, 0x8ee6b1);
-    this.addText(cx, 410, "DROP HERE → SECRET EXIT", {
-      fontFamily: "Nunito",
-      fontSize: "12px",
-      fontStyle: "900",
-      color: "#ffffff",
-    }).setOrigin(0.5);
-
-    title.on("pointerdown", () => {
-      this.showFeedback("Drag the THREE DOORS sign into the green SECRET EXIT area.");
-      this.tweens.add({ targets: title, scale: 1.06, duration: 120, yoyo: true });
+    this.tweens.add({
+      targets: ceilingExit,
+      y: "-=3",
+      alpha: { from: 0.75, to: 1 },
+      duration: 900,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
     });
+  }
 
-    this.input.setDraggable(title);
-    title.on("drag", (_pointer: Phaser.Input.Pointer, x: number, y: number) => {
-      title.setPosition(
-        (x - this.contentRoot.x) / this.contentRoot.scaleX,
-        (y - this.contentRoot.y) / this.contentRoot.scaleY,
+  private showVisualHint(): void {
+    if (this.level === 1) {
+      const frame = this.contentRoot.list.find(
+        (child) => child instanceof Phaser.GameObjects.Container && Math.abs(child.x - this.DESIGN_WIDTH / 2) < 2,
       );
-      dragHint.setAlpha(0.25);
-    });
-
-    title.on("dragend", () => {
-      if (title.y > 365 && Math.abs(title.x - cx) < 120) {
-        dragHint.destroy();
-        dropZone.destroy();
-        this.success("YOU FOUND THE FOURTH DOOR!");
-      } else {
-        this.tweens.add({ targets: title, x: cx, y: 150, duration: 250, ease: "Back" });
-        dragHint.setAlpha(1);
+      if (frame) {
+        this.tweens.add({ targets: frame, angle: 3, duration: 120, yoyo: true, repeat: 4 });
       }
-    });
-
-    this.addText(cx, 395, "Maybe the answer isn't a door...", {
-      fontFamily: "Nunito",
-      fontSize: "13px",
-      color: "#fce7bd",
-    }).setOrigin(0.5);
+    } else if (this.level === 2) {
+      this.tweens.add({ targets: this.contentRoot.list.find((child) => child instanceof Phaser.GameObjects.Container), x: "+=5", duration: 120, yoyo: true, repeat: 4 });
+    } else {
+      this.tweens.add({
+        targets: this.contentRoot,
+        y: "-=4",
+        duration: 180,
+        yoyo: true,
+        repeat: 3,
+      });
+    }
   }
 
   private showFeedback(message: string): void {
     this.feedback?.destroy();
-    this.feedback = this.addText(this.DESIGN_WIDTH / 2, 540, message, {
+    this.feedback = this.addText(this.DESIGN_WIDTH / 2, 535, message, {
       fontFamily: "Nunito",
       fontSize: "15px",
       fontStyle: "800",
       color: "#ffffff",
-      backgroundColor: "#17243a",
+      backgroundColor: "#2D2424",
       padding: { left: 14, right: 14, top: 9, bottom: 9 },
       align: "center",
       wordWrap: { width: this.DESIGN_WIDTH - 45 },
-    }).setOrigin(0.5).setDepth(20);
+    }).setOrigin(0.5).setDepth(200);
   }
 
   private success(message: string): void {
     const { width, height } = this.scale;
-    this.add.rectangle(width / 2, height / 2, width, height, 0x07111f, 0.72).setDepth(100);
-    this.add.text(width / 2, height / 2 - 70, "🎉", { fontSize: "68px" }).setOrigin(0.5).setDepth(101);
+
+    this.add.rectangle(width / 2, height / 2, width, height, 0x07111f, 0.68)
+      .setDepth(100);
+
     this.add.text(width / 2, height / 2 + 5, message, {
       fontFamily: "Fredoka",
       fontSize: "26px",
       fontStyle: "700",
-      color: "#facc15",
+      color: "#FFD93D",
       align: "center",
       wordWrap: { width: width - 70 },
     }).setOrigin(0.5).setDepth(101);
@@ -467,8 +684,8 @@ export class GameScene extends Phaser.Scene {
         fontFamily: "Nunito",
         fontSize: "19px",
         fontStyle: "900",
-        color: "#ffffff",
-        backgroundColor: "#e88a23",
+        color: "#2D2424",
+        backgroundColor: "#FFD93D",
         padding: { left: 22, right: 22, top: 14, bottom: 14 },
       },
     ).setOrigin(0.5).setDepth(101).setInteractive({ useHandCursor: true });
@@ -481,7 +698,7 @@ export class GameScene extends Phaser.Scene {
         width / 2,
         height / 2,
         Phaser.Math.Between(3, 7),
-        Phaser.Utils.Array.GetRandom([0xfacc15, 0x60a5fa, 0xf472b6, 0x34d399]),
+        Phaser.Utils.Array.GetRandom([0xffd93d, 0x60a5fa, 0xf472b6, 0x34d399]),
       ).setDepth(102);
 
       this.tweens.add({
