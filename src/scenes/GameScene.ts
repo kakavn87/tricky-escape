@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { TopBar } from "../ui/TopBar";
 
 type LevelData = {
   title: string;
@@ -69,30 +70,18 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createHud(): void {
-    const { width } = this.scale;
-    this.add.text(22, 28, "✕", {
-      fontFamily: "Arial",
-      fontSize: "26px",
-      color: "#ffffff",
-    }).setInteractive({ useHandCursor: true }).on("pointerdown", () => this.scene.start("MenuScene"));
-    this.add.text(width / 2, 36, `LEVEL ${String(this.level).padStart(2, "0")}`, {
-      fontFamily: "Nunito",
-      fontSize: "17px",
-      fontStyle: "900",
-      color: "#ffffff",
-      letterSpacing: 2,
-    }).setOrigin(0.5);
-    this.add.text(width - 22, 28, "💡", {
-      fontFamily: "Arial",
-      fontSize: "24px",
-    }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).on("pointerdown", () => {
-      this.showFeedback(
-        this.level === 1
-          ? "1) Tap the picture. 2) Drag the key to the EXIT door."
-          : this.level === 2
-            ? "Drag the bottle onto the sleeping guard."
-            : "Drag the THREE DOORS sign into the green SECRET EXIT area."
-      );
+    new TopBar(this, {
+      level: this.level,
+      onMenu: () => this.scene.start("MenuScene"),
+      onHint: () => {
+        this.showFeedback(
+          this.level === 1
+            ? "Hint: investigate the picture."
+            : this.level === 2
+              ? "Hint: the guard may be distracted."
+              : "Hint: don't assume the exit has to be a door."
+        );
+      },
     });
   }
 
