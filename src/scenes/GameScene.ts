@@ -169,7 +169,6 @@ export class GameScene extends Phaser.Scene {
   private createKeyPuzzle(): void {
     const cx = this.DESIGN_WIDTH / 2;
 
-    this.createPicture(cx, 235);
     this.createDoor(cx - 8, 640, 176, 238);
     this.createCharacter(cx + 126, 650);
 
