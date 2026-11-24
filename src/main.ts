@@ -12,8 +12,8 @@ const config = {
   // to keep text / Graphics crisp without excessive mobile GPU cost.
   resolution: Math.min(window.devicePixelRatio || 1, 2),
   scale: {
-    mode: Phaser.Scale.RESIZE,
-    autoCenter: Phaser.Scale.NO_CENTER,
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
     width: 390,
     height: 844,
   },
