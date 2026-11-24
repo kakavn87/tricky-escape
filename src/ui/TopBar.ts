@@ -5,8 +5,8 @@ import type { SafeArea } from "./SafeArea";
 const COLORS = {
   ink: 0x2d2424,
   cream: 0xfff8ef,
-  yellow: 0xffc83d,
-  yellowLight: 0xffe28a,
+  yellow: 0xffd93d,
+  yellowLight: 0xffffe08,
   shadow: 0x2d2424,
 };
 
@@ -109,32 +109,32 @@ export class TopBar extends Phaser.GameObjects.Container {
     const g = this.scene.add.graphics();
 
     g.fillStyle(COLORS.yellow, 1);
-    g.fillCircle(0, -5, 10);
+    g.fillCircle(0, -2, 10);
     g.lineStyle(3, COLORS.ink, 1);
-    g.strokeCircle(0, -5, 10);
+    g.strokeCircle(0, -2, 10);
 
     g.lineStyle(3, COLORS.ink, 1);
     g.beginPath();
-    g.moveTo(-5, 5);
-    g.lineTo(-4, 10);
-    g.lineTo(4, 10);
-    g.lineTo(5, 5);
+    g.moveTo(-5, 8);
+    g.lineTo(-4, 13);
+    g.lineTo(4, 13);
+    g.lineTo(5, 8);
     g.strokePath();
 
     g.lineStyle(2, COLORS.ink, 1);
     g.beginPath();
-    g.moveTo(-3, 14);
-    g.lineTo(3, 14);
+    g.moveTo(-3, 16);
+    g.lineTo(3, 16);
     g.strokePath();
 
     g.lineStyle(2, COLORS.yellowLight, 1);
     g.beginPath();
-    g.moveTo(0, -20);
-    g.lineTo(0, -15);
-    g.moveTo(-14, -13);
-    g.lineTo(-10, -10);
-    g.moveTo(14, -13);
-    g.lineTo(10, -10);
+    g.moveTo(0, -18);
+    g.lineTo(0, -13);
+    g.moveTo(-14, -10);
+    g.lineTo(-10, -7);
+    g.moveTo(14, -10);
+    g.lineTo(10, -7);
     g.strokePath();
 
     return g;
