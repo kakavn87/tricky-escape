@@ -697,6 +697,8 @@ export class GameScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(101);
 
     const nextLevel = this.level < 3 ? this.level + 1 : 1;
+    // Use the plate itself as the hit target. This is more reliable on touch
+    // devices than putting the interactive area on a Container.
     const button = this.add.container(width / 2, height / 2 + 75).setDepth(101);
 
     const shadow = this.add.graphics();
@@ -708,6 +710,11 @@ export class GameScene extends Phaser.Scene {
     plate.lineStyle(4, C.ink, 1);
     plate.fillRoundedRect(-96, -31, 192, 62, 14);
     plate.strokeRoundedRect(-96, -31, 192, 62, 14);
+    plate.setInteractive(
+      new Phaser.Geom.Rectangle(-96, -31, 192, 62),
+      Phaser.Geom.Rectangle.Contains,
+      true,
+    );
 
     const label = this.add.text(
       0,
@@ -722,16 +729,24 @@ export class GameScene extends Phaser.Scene {
     ).setOrigin(0.5);
 
     button.add([shadow, plate, label]);
-    button.setSize(192, 62);
-    button.setInteractive(
-      new Phaser.Geom.Rectangle(-96, -31, 192, 62),
-      Phaser.Geom.Rectangle.Contains,
-    );
 
-    button.on("pointerdown", () => {
-      button.disableInteractive();
+    const goNext = (): void => {
+      if (!plate.input?.enabled) return;
+      plate.disableInteractive();
       overlay.destroy();
-      this.scene.start("GameScene", { level: nextLevel });
+      this.tweens.killTweensOf(button);
+      this.scene.restart({ level: nextLevel });
+    };
+
+    plate.on("pointerup", goNext);
+    plate.on("pointerdown", () => {
+      this.tweens.add({
+        targets: button,
+        scale: 0.97,
+        duration: 70,
+        yoyo: true,
+        ease: "Quad.easeOut",
+      });
     });
 
     this.tweens.add({
