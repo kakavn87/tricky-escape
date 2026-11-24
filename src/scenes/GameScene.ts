@@ -307,8 +307,11 @@ export class GameScene extends Phaser.Scene {
     g.fillStyle(C.green, 1);
     g.beginPath();
     g.moveTo(-68, 28);
-    g.quadraticBezierTo(-10, 2, 20, 34);
-    g.quadraticBezierTo(50, 18, 68, 34);
+    g.lineTo(-42, 17);
+    g.lineTo(-15, 22);
+    g.lineTo(12, 30);
+    g.lineTo(38, 20);
+    g.lineTo(68, 34);
     g.lineTo(68, 50);
     g.lineTo(-68, 50);
     g.closePath();
