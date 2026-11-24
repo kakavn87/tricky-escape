@@ -498,6 +498,7 @@ export class GameScene extends Phaser.Scene {
     g.fillRect(51, -5, 7, 10);
 
     key.add([shadow, g]);
+    this.contentRoot.add(key);
     return key;
   }
 
