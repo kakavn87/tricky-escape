@@ -86,7 +86,13 @@ export class GameScene extends Phaser.Scene {
       fontFamily: "Arial",
       fontSize: "24px",
     }).setOrigin(1, 0).setInteractive({ useHandCursor: true }).on("pointerdown", () => {
-      this.showFeedback(this.level === 1 ? "Try moving the picture!" : "Try interacting with everything!");
+      this.showFeedback(
+        this.level === 1
+          ? "1) Tap the picture. 2) Drag the key to the EXIT door."
+          : this.level === 2
+            ? "Drag the bottle onto the sleeping guard."
+            : "Drag the THREE DOORS sign into the green SECRET EXIT area."
+      );
     });
   }
 
@@ -148,13 +154,13 @@ export class GameScene extends Phaser.Scene {
     this.input.setDraggable(key);
     key.on("pointerdown", () => {
       if (!key.visible || this.keyTaken) return;
-      this.showFeedback("Drag the key to the door!");
+      this.showFeedback("Now drag the key to the EXIT door below.");
     });
     key.on("drag", (_pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
       key.setPosition(dragX, dragY);
     });
     key.on("dragend", () => {
-      if (key.x > width / 2 - 80 && key.y > 430 && key.y < 680) {
+      if (Math.abs(key.x - width / 2) < 85 && key.y > 650 && key.y < 850) {
         this.keyTaken = true;
         this.success("DOOR UNLOCKED!");
       } else {
@@ -163,9 +169,17 @@ export class GameScene extends Phaser.Scene {
     });
     this.keyObject = key;
 
-    // Door target.
+    // Clear drop target for the key.
     this.add.rectangle(width / 2, 760, 138, 175, 0x4c342c).setStrokeStyle(8, 0x8d5a36);
     this.add.circle(width / 2 + 38, 760, 6, 0xffd56b);
+    this.add.text(width / 2, 690, "DRAG KEY HERE", {
+      fontFamily: "Nunito",
+      fontSize: "13px",
+      fontStyle: "900",
+      color: "#fff1c9",
+      backgroundColor: "#17243a",
+      padding: { left: 10, right: 10, top: 7, bottom: 7 },
+    }).setOrigin(0.5);
     this.add.text(width / 2, 864, "EXIT", {
       fontFamily: "Nunito",
       fontSize: "14px",
@@ -177,6 +191,14 @@ export class GameScene extends Phaser.Scene {
   private createGuardPuzzle(): void {
     const { width } = this.scale;
     this.add.rectangle(width / 2, 300, 190, 130, 0x9f734e).setStrokeStyle(8, 0x70482e);
+    this.add.text(width / 2, 390, "DRAG BOTTLE TO GUARD", {
+      fontFamily: "Nunito",
+      fontSize: "12px",
+      fontStyle: "900",
+      color: "#fff1c9",
+      backgroundColor: "#17243a",
+      padding: { left: 9, right: 9, top: 6, bottom: 6 },
+    }).setOrigin(0.5);
     this.add.text(width / 2, 292, "😴", { fontSize: "82px", fontFamily: "Arial" }).setOrigin(0.5);
     const bottle = this.add.text(width / 2 - 110, 440, "🍼", {
       fontSize: "48px",
@@ -204,6 +226,12 @@ export class GameScene extends Phaser.Scene {
     });
     this.input.setDraggable(bottle);
     this.add.text(width / 2, 760, "🚪", { fontSize: "100px" }).setOrigin(0.5);
+    this.add.text(width / 2, 690, "EXIT", {
+      fontFamily: "Nunito",
+      fontSize: "13px",
+      fontStyle: "900",
+      color: "#fef3c7",
+    }).setOrigin(0.5);
   }
 
   private createDoorPuzzle(): void {
@@ -235,15 +263,26 @@ export class GameScene extends Phaser.Scene {
       padding: { left: 12, right: 12, top: 7, bottom: 7 },
     }).setOrigin(0.5).setInteractive({ draggable: true, useHandCursor: true });
 
-    const dragHint = this.add.text(width / 2, 258, "↕  DRAG THE WORDS DOWN", {
+    const dragHint = this.add.text(width / 2, 258, "↕  DRAG THIS DOWN", {
       fontFamily: "Nunito",
       fontSize: "12px",
       fontStyle: "900",
       color: "#fff1c9",
+      backgroundColor: "#17243a",
+      padding: { left: 9, right: 9, top: 6, bottom: 6 },
+    }).setOrigin(0.5);
+
+    const dropZone = this.add.rectangle(width / 2, 485, 220, 58, 0x2f6f55, 0.75)
+      .setStrokeStyle(3, 0x8ee6b1);
+    this.add.text(width / 2, 485, "DROP HERE → SECRET EXIT", {
+      fontFamily: "Nunito",
+      fontSize: "12px",
+      fontStyle: "900",
+      color: "#ffffff",
     }).setOrigin(0.5);
 
     title.on("pointerdown", () => {
-      this.showFeedback("Drag 'THREE DOORS' downward to find the hidden exit!");
+      this.showFeedback("Drag the THREE DOORS sign into the green SECRET EXIT area.");
       this.tweens.add({ targets: title, scale: 1.06, duration: 120, yoyo: true });
     });
 
@@ -253,8 +292,9 @@ export class GameScene extends Phaser.Scene {
       dragHint.setAlpha(0.25);
     });
     title.on("dragend", () => {
-      if (title.y > 450) {
+      if (title.y > 440 && Math.abs(title.x - width / 2) < 120) {
         dragHint.destroy();
+        dropZone.destroy();
         this.success("YOU FOUND THE FOURTH DOOR!");
       } else {
         this.tweens.add({
