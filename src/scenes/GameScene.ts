@@ -170,6 +170,7 @@ export class GameScene extends Phaser.Scene {
     const cx = this.DESIGN_WIDTH / 2;
 
     this.createDoor(cx - 8, 640, 176, 238);
+    this.createRug(cx - 8, 786);
     this.createCharacter(cx + 126, 650);
 
     // Hidden key behind the picture.
@@ -385,6 +386,24 @@ export class GameScene extends Phaser.Scene {
     door.add([shadow, panel]);
     this.contentRoot.add(door);
     return door;
+  }
+
+  private createRug(x: number, y: number): void {
+    const rug = this.add.graphics();
+    rug.fillStyle(C.ink, 0.16);
+    rug.fillEllipse(x + 3, y + 7, 230, 52);
+
+    rug.fillStyle(0xf2c989, 1);
+    rug.lineStyle(3, C.woodDark, 0.8);
+    rug.fillEllipse(x, y, 226, 50);
+    rug.strokeEllipse(x, y, 226, 50);
+
+    rug.lineStyle(2, C.woodLight, 0.9);
+    rug.strokeEllipse(x, y, 198, 36);
+    rug.strokeEllipse(x, y, 168, 25);
+
+    rug.lineStyle(1.5, C.woodLight, 0.75);
+    rug.strokeEllipse(x, y, 126, 16);
   }
 
   private createCharacter(x: number, y: number): Phaser.GameObjects.Container {
