@@ -6,7 +6,7 @@ const COLORS = {
   ink: 0x2d2424,
   cream: 0xfff8ef,
   yellow: 0xffd93d,
-  yellowLight: 0xffffe08,
+  yellowLight: 0xffffe0,
   shadow: 0x2d2424,
 };
 
