@@ -7,7 +7,8 @@ import "./style.css";
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: "app",
-  backgroundColor: "#111827",
+  backgroundColor: "#0b1220",
+  resolution: Math.min(window.devicePixelRatio || 1, 2),
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
@@ -19,7 +20,7 @@ const config: Phaser.Types.Core.GameConfig = {
   render: {
     antialias: true,
     pixelArt: false,
-    roundPixels: false,
+    roundPixels: true,
   },
   input: {
     activePointers: 2,
