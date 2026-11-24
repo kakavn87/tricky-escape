@@ -173,12 +173,13 @@ export class GameScene extends Phaser.Scene {
     this.createRug(cx - 8, 786);
     this.createCharacter(cx + 126, 650);
 
-    // The key deliberately sticks out from behind the picture.
-    // The player should immediately see that it is draggable.
-    const key = this.createKeyGraphic(cx + 82, 292);
+    // The key is visible immediately. It is intentionally drawn after the picture
+    // so the complete draggable shape is readable without any click.
+    const picture = this.createPicture(cx, 235);
+
+    const key = this.createKeyGraphic(cx + 84, 292);
     key.setAngle(-38);
 
-    const picture = this.createPicture(cx, 235);
     picture.setInteractive(
       new Phaser.Geom.Rectangle(-98, -72, 196, 144),
       Phaser.Geom.Rectangle.Contains,
