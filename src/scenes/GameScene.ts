@@ -173,9 +173,10 @@ export class GameScene extends Phaser.Scene {
     this.createRug(cx - 8, 786);
     this.createCharacter(cx + 126, 650);
 
-    // Hidden key behind the picture.
-    const key = this.createKeyGraphic(cx + 78, 307);
-    key.setVisible(false);
+    // The key deliberately sticks out from behind the picture.
+    // The player should immediately see that it is draggable.
+    const key = this.createKeyGraphic(cx + 82, 292);
+    key.setAngle(-38);
 
     const picture = this.createPicture(cx, 235);
     picture.setInteractive(
@@ -184,19 +185,15 @@ export class GameScene extends Phaser.Scene {
     );
 
     picture.on("pointerdown", () => {
-      if (this.keyTaken || key.visible) return;
+      if (this.keyTaken) return;
 
+      // A small reaction makes the hiding spot understandable without text.
       this.tweens.add({
         targets: picture,
-        angle: 4,
-        y: 246,
-        duration: 180,
-        ease: "Back.easeOut",
-        onComplete: () => {
-          key.setVisible(true);
-          this.animateKeyReveal(key);
-          this.createDust(cx + 72, 302);
-        },
+        angle: { from: picture.angle, to: picture.angle + 3 },
+        duration: 110,
+        yoyo: true,
+        ease: "Sine.easeOut",
       });
     });
 
