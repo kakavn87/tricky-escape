@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import { getSafeArea, SafeArea } from "./SafeArea";
+import { getSafeArea } from "./SafeArea";
+import type { SafeArea } from "./SafeArea";
 
 const COLORS = {
   ink: 0x2d2424,
@@ -92,8 +93,6 @@ export class TopBar extends Phaser.GameObjects.Container {
   private createMenuIcon(): Phaser.GameObjects.Graphics {
     const g = this.scene.add.graphics();
     g.lineStyle(3, COLORS.ink, 1);
-    g.lineCap = Phaser.Display.LineCap.ROUND;
-
     g.beginPath();
     g.moveTo(-10, -8);
     g.lineTo(10, -8);
@@ -115,7 +114,6 @@ export class TopBar extends Phaser.GameObjects.Container {
     g.strokeCircle(0, -5, 10);
 
     g.lineStyle(3, COLORS.ink, 1);
-    g.lineCap = Phaser.Display.LineCap.ROUND;
     g.beginPath();
     g.moveTo(-5, 5);
     g.lineTo(-4, 10);
