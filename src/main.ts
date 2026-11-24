@@ -7,14 +7,15 @@ import "./style.css";
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: "app",
-  backgroundColor: "#0b1220",
-    scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
+  backgroundColor: "#FAF6F0",
+  // Phaser uses this as the renderer backing resolution. Cap DPR at 2
+  // to keep text / Graphics crisp without excessive mobile GPU cost.
+  resolution: Math.min(window.devicePixelRatio || 1, 2),
+  scale: {
+    mode: Phaser.Scale.RESIZE,
+    autoCenter: Phaser.Scale.NO_CENTER,
     width: 390,
     height: 844,
-    min: { width: 320, height: 568 },
-    max: { width: 540, height: 1000 },
   },
   render: {
     antialias: true,
@@ -27,4 +28,12 @@ const config: Phaser.Types.Core.GameConfig = {
   scene: [BootScene, MenuScene, GameScene],
 };
 
-new Phaser.Game(config);
+const startGame = (): void => {
+  new Phaser.Game(config);
+};
+
+if (document.fonts) {
+  document.fonts.ready.then(startGame);
+} else {
+  startGame();
+}
