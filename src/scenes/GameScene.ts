@@ -231,13 +231,41 @@ export class GameScene extends Phaser.Scene {
       fontSize: "30px",
       fontStyle: "800",
       color: "#ffffff",
+      backgroundColor: "#684333",
+      padding: { left: 12, right: 12, top: 7, bottom: 7 },
     }).setOrigin(0.5).setInteractive({ draggable: true, useHandCursor: true });
-    title.setData("startY", title.y);
+
+    const dragHint = this.add.text(width / 2, 258, "↕  DRAG THE WORDS DOWN", {
+      fontFamily: "Nunito",
+      fontSize: "12px",
+      fontStyle: "900",
+      color: "#fff1c9",
+    }).setOrigin(0.5);
+
+    title.on("pointerdown", () => {
+      this.showFeedback("Drag 'THREE DOORS' downward to find the hidden exit!");
+      this.tweens.add({ targets: title, scale: 1.06, duration: 120, yoyo: true });
+    });
+
     this.input.setDraggable(title);
-    title.on("drag", (_pointer: Phaser.Input.Pointer, x: number, y: number) => title.setPosition(x, y));
+    title.on("drag", (_pointer: Phaser.Input.Pointer, x: number, y: number) => {
+      title.setPosition(x, y);
+      dragHint.setAlpha(0.25);
+    });
     title.on("dragend", () => {
-      if (title.y > 450) this.success("YOU FOUND THE FOURTH DOOR!");
-      else this.tweens.add({ targets: title, x: width / 2, y: 218, duration: 250, ease: "Back" });
+      if (title.y > 450) {
+        dragHint.destroy();
+        this.success("YOU FOUND THE FOURTH DOOR!");
+      } else {
+        this.tweens.add({
+          targets: title,
+          x: width / 2,
+          y: 218,
+          duration: 250,
+          ease: "Back",
+        });
+        dragHint.setAlpha(1);
+      }
     });
     this.add.text(width / 2, 470, "Maybe the answer isn't a door...", {
       fontFamily: "Nunito",
