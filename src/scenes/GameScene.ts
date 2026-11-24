@@ -46,24 +46,24 @@ export class GameScene extends Phaser.Scene {
 
   private drawRoom(): void {
     const { width, height } = this.scale;
-    this.add.rectangle(width / 2, height / 2, width, height, 0x263b54);
-    this.add.rectangle(width / 2, 430, width - 34, 520, 0xe7b979)
-      .setStrokeStyle(7, 0x9b6842);
-    this.add.rectangle(width / 2, 185, width - 34, 180, 0x8b604c)
-      .setStrokeStyle(7, 0x684333);
-    this.add.rectangle(width / 2, 510, width - 34, 8, 0xc18b54);
-    this.add.rectangle(width / 2, 682, width - 34, 220, 0xb97d4a);
-    this.add.rectangle(width / 2, 665, width - 34, 12, 0x8b5a34);
+    this.add.rectangle(width / 2, height / 2, width, height, 0x14243b);
+    this.add.rectangle(width / 2, 430, width - 34, 520, 0xf0c477)
+      .setStrokeStyle(7, 0x6b432c);
+    this.add.rectangle(width / 2, 185, width - 34, 180, 0x76503f)
+      .setStrokeStyle(7, 0x4b2c20);
+    this.add.rectangle(width / 2, 510, width - 34, 8, 0xd59a50);
+    this.add.rectangle(width / 2, 682, width - 34, 220, 0xb96f3f);
+    this.add.rectangle(width / 2, 665, width - 34, 12, 0x744128);
 
     // Decorative wall panels.
     for (let x = 60; x < width - 20; x += 55) {
-      this.add.rectangle(x, 145, 4, 80, 0x9e735b, 0.45);
+      this.add.rectangle(x, 145, 4, 80, 0x9d6c55, 0.45);
     }
     this.add.text(width / 2, 120, "ROOM 01", {
       fontFamily: "Nunito",
       fontSize: "13px",
       fontStyle: "900",
-      color: "#fce5bb",
+      color: "#fff4d6",
       letterSpacing: 3,
     }).setOrigin(0.5);
   }
@@ -102,10 +102,10 @@ export class GameScene extends Phaser.Scene {
 
     this.add.text(width / 2, 548, data.title, {
       fontFamily: "Baloo 2",
-      fontSize: "28px",
-      fontStyle: "800",
+      fontSize: "27px",
+      fontStyle: "900",
       color: "#fff8e8",
-      stroke: "#774d32",
+      stroke: "#4a2a1e",
       strokeThickness: 4,
     }).setOrigin(0.5);
 
@@ -113,7 +113,7 @@ export class GameScene extends Phaser.Scene {
       fontFamily: "Nunito",
       fontSize: "14px",
       fontStyle: "700",
-      color: "#fff0d8",
+      color: "#fff8e8",
       align: "center",
       wordWrap: { width: width - 70 },
     }).setOrigin(0.5);
@@ -211,7 +211,7 @@ export class GameScene extends Phaser.Scene {
       fontFamily: "Nunito",
       fontSize: "14px",
       fontStyle: "900",
-      color: "#fef3c7",
+      color: "#fff7db",
     }).setOrigin(0.5);
   }
 
@@ -257,7 +257,7 @@ export class GameScene extends Phaser.Scene {
       fontFamily: "Nunito",
       fontSize: "13px",
       fontStyle: "900",
-      color: "#fef3c7",
+      color: "#fff7db",
     }).setOrigin(0.5);
   }
 
