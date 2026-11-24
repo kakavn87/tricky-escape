@@ -2,22 +2,29 @@ import Phaser from "phaser";
 import { TopBar } from "../ui/TopBar";
 import { getSafeArea, type SafeArea } from "../ui/SafeArea";
 
-const COLORS = {
-  ink: 0x2d2424,
-  cream: 0xfaf6f0,
-  wall: 0xf7dfc0,
-  wallShadow: 0xe9bd8b,
-  floor: 0xe5b98a,
-  floorLine: 0xc58a52,
-  wood: 0x9a6545,
-  woodDark: 0x70462f,
-  door: 0x5d83b2,
-  doorDark: 0x3c5b82,
-  yellow: 0xffd93d,
-  skin: 0xf2bd8e,
-  shirt: 0x6e8fd0,
-  pants: 0x4f5f83,
+const C = {
+  ink: 0x3a2525,
+  cream: 0xfff8ea,
+  cream2: 0xfff1d7,
+  wall: 0xfff7e6,
+  stripe: 0xf2dfbf,
+  floor: 0xe7a45f,
+  floorLight: 0xf0b875,
+  floorLine: 0xc47b42,
+  blue: 0x2f7f9f,
+  blueLight: 0x4d9ab2,
+  blueDark: 0x20556f,
+  wood: 0x9b5536,
+  woodDark: 0x693927,
+  woodLight: 0xb96b43,
+  gold: 0xffd93d,
+  goldDark: 0xc28b19,
+  skin: 0xf1b68d,
   white: 0xffffff,
+  green: 0x79a94b,
+  greenDark: 0x3e7652,
+  mountain: 0x5d91a6,
+  mountainDark: 0x3e697f,
 };
 
 export class GameScene extends Phaser.Scene {
@@ -27,7 +34,7 @@ export class GameScene extends Phaser.Scene {
   private safeArea!: SafeArea;
 
   private readonly DESIGN_WIDTH = 390;
-  private readonly DESIGN_HEIGHT = 760;
+  private readonly DESIGN_HEIGHT = 844;
 
   constructor() {
     super("GameScene");
@@ -70,7 +77,7 @@ export class GameScene extends Phaser.Scene {
     this.contentRoot.setScale(scale);
     this.contentRoot.setPosition(
       this.safeArea.centerX - (this.DESIGN_WIDTH * scale) / 2,
-      this.safeArea.top + Math.max(4, (this.safeArea.height - this.DESIGN_HEIGHT * scale) / 2),
+      this.safeArea.top + Math.max(0, (this.safeArea.height - this.DESIGN_HEIGHT * scale) / 2),
     );
   }
 
@@ -84,40 +91,59 @@ export class GameScene extends Phaser.Scene {
     this.scale.off(Phaser.Scale.Events.RESIZE, this.handleResize, this);
   }
 
-  /**
-   * Full-bleed room. The room owns the entire canvas; TopBar sits above it.
-   * There is intentionally no dark background strip above/below the room.
-   */
   private drawRoom(): void {
     const { width, height } = this.scale;
-    const floorY = Math.round(height * 0.58);
+    const floorY = Math.round(height * 0.79);
 
-    this.add.rectangle(width / 2, height / 2, width, height, COLORS.floor).setDepth(-30);
+    this.add.rectangle(width / 2, height / 2, width, height, C.wall).setDepth(-40);
 
-    this.add.rectangle(width / 2, floorY / 2, width, floorY, COLORS.wall)
-      .setStrokeStyle(6, COLORS.woodDark)
-      .setDepth(-29);
-
-    this.add.rectangle(width / 2, floorY + (height - floorY) / 2, width, height - floorY, COLORS.floor)
-      .setStrokeStyle(6, COLORS.woodDark)
-      .setDepth(-29);
-
-    this.add.rectangle(width / 2, floorY, width, 8, COLORS.floorLine).setDepth(-28);
-
-    // Subtle wall panels.
-    const panelStep = Math.max(44, width / 34);
-    for (let x = 20; x < width + panelStep; x += panelStep) {
-      this.add.rectangle(x, Math.min(floorY - 28, 74), 3, Math.min(82, floorY * 0.38), COLORS.wallShadow, 0.42)
-        .setDepth(-28);
+    // Warm vertical wallpaper stripes.
+    const stripeWidth = Math.max(30, Math.round(width * 0.075));
+    for (let x = -stripeWidth; x < width + stripeWidth; x += stripeWidth * 2) {
+      this.add.rectangle(
+        x + stripeWidth / 2,
+        floorY / 2,
+        stripeWidth,
+        floorY,
+        C.stripe,
+      ).setDepth(-39);
     }
 
-    // Floor boards.
-    const boardStep = Math.max(58, width / 22);
-    for (let x = -boardStep; x < width + boardStep; x += boardStep) {
-      this.add.line(0, 0, x, floorY + 24, x + boardStep * 0.7, height, COLORS.floorLine, 0.16)
-        .setLineWidth(2)
-        .setDepth(-28);
+    // Tiny top-to-floor seam shadow.
+    this.add.rectangle(width / 2, floorY - 3, width, 6, C.woodDark, 0.85).setDepth(-38);
+
+    // Wooden floor.
+    this.add.rectangle(
+      width / 2,
+      floorY + (height - floorY) / 2,
+      width,
+      height - floorY,
+      C.floor,
+    ).setDepth(-38);
+
+    // Floor planks.
+    const plankH = Math.max(54, Math.round(height * 0.075));
+    for (let y = floorY + plankH; y < height + plankH; y += plankH) {
+      this.add.rectangle(width / 2, y, width, 3, C.floorLine, 0.65).setDepth(-37);
     }
+
+    const plankW = Math.max(90, Math.round(width * 0.24));
+    for (let row = 0, y = floorY; y < height + plankH; row++, y += plankH) {
+      const offset = row % 2 === 0 ? 0 : plankW / 2;
+      for (let x = -plankW + offset; x < width + plankW; x += plankW) {
+        this.add.line(
+          x,
+          y,
+          x + plankW * 0.35,
+          y + plankH,
+          C.floorLine,
+          0.5,
+        ).setLineWidth(2).setDepth(-37);
+      }
+    }
+
+    // Small warm baseboard.
+    this.add.rectangle(width / 2, floorY - 1, width, 8, C.woodLight).setDepth(-36);
   }
 
   private createHud(): void {
@@ -143,98 +169,63 @@ export class GameScene extends Phaser.Scene {
   private createKeyPuzzle(): void {
     const cx = this.DESIGN_WIDTH / 2;
 
-    // Door + large lock.
-    this.createDoor(cx, 652, 142, 190);
+    this.createPicture(cx, 235);
+    this.createDoor(cx - 8, 640, 176, 238);
+    this.createCharacter(cx + 126, 650);
 
-    // Character: expressive, simple vector cartoon.
-    this.createCharacter(cx + 92, 620);
-
-    // Picture frame, slightly tilted.
-    const frame = this.addContainer(cx, 220);
-    frame.setAngle(-2.5);
-
-    const shadow = this.add.graphics();
-    shadow.fillStyle(COLORS.ink, 0.18);
-    shadow.fillRoundedRect(-89, -74, 178, 150, 14);
-
-    const border = this.add.graphics();
-    border.fillStyle(COLORS.wood, 1);
-    border.lineStyle(3, COLORS.ink, 1);
-    border.fillRoundedRect(-86, -72, 172, 144, 10);
-    border.strokeRoundedRect(-86, -72, 172, 144, 10);
-
-    const inner = this.add.graphics();
-    inner.fillStyle(0xf7d58d, 1);
-    inner.fillRoundedRect(-70, -56, 140, 112, 5);
-    inner.lineStyle(3, 0xb77945, 1);
-    inner.strokeRoundedRect(-70, -56, 140, 112, 5);
-
-    const landscape = this.createLandscapeArt();
-    frame.add([shadow, border, inner, landscape]);
-
-    // Key is genuinely hidden behind the frame.
-    const key = this.createKeyGraphic(0, 0);
+    // Hidden key behind the picture.
+    const key = this.createKeyGraphic(cx + 78, 307);
     key.setVisible(false);
-    key.setPosition(cx + 76, 305);
-    this.contentRoot.add(key);
 
-    // Gentle visual affordance, not explanatory text.
-    const frameGlow = this.add.graphics();
-    frameGlow.lineStyle(3, COLORS.yellow, 0.2);
-    frameGlow.strokeRoundedRect(cx - 91, 147, 182, 150, 14);
-    frameGlow.setDepth(-1);
-    this.tweens.add({
-      targets: frameGlow,
-      alpha: 0.05,
-      duration: 900,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut",
-    });
+    const picture = this.createPicture(cx, 235);
+    picture.setInteractive(
+      new Phaser.Geom.Rectangle(-98, -72, 196, 144),
+      Phaser.Geom.Rectangle.Contains,
+    );
 
-    frame.setSize(180, 150).setInteractive({ useHandCursor: true });
-    frame.on("pointerdown", () => {
+    picture.on("pointerdown", () => {
       if (this.keyTaken || key.visible) return;
 
       this.tweens.add({
-        targets: frame,
-        angle: 7,
-        y: 232,
+        targets: picture,
+        angle: 4,
+        y: 246,
         duration: 180,
-        ease: "Quad.easeOut",
+        ease: "Back.easeOut",
         onComplete: () => {
-          frame.setAngle(7);
           key.setVisible(true);
           this.animateKeyReveal(key);
-          this.createDust(cx, 285);
+          this.createDust(cx + 72, 302);
         },
       });
     });
 
-    key.setSize(52, 52).setInteractive({ useHandCursor: true });
+    key.setSize(58, 58).setInteractive({ useHandCursor: true });
     this.input.setDraggable(key);
 
     key.on("dragstart", () => {
-      // Stop the idle floating animation while dragging so it cannot fight
-      // the pointer's Y coordinate.
       this.tweens.killTweensOf(key);
     });
 
     key.on("drag", (_pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
-      const localX = (dragX - this.contentRoot.x) / this.contentRoot.scaleX;
-      const localY = (dragY - this.contentRoot.y) / this.contentRoot.scaleY;
-      key.setPosition(localX, localY);
+      key.setPosition(
+        (dragX - this.contentRoot.x) / this.contentRoot.scaleX,
+        (dragY - this.contentRoot.y) / this.contentRoot.scaleY,
+      );
     });
 
     key.on("dragend", () => {
-      if (Math.abs(key.x - cx) < 82 && key.y > 570) {
+      const lockX = cx - 8;
+      const lockY = 624;
+      if (Phaser.Math.Distance.Between(key.x, key.y, lockX, lockY) < 62) {
         this.keyTaken = true;
+        key.setVisible(false);
         this.success("DOOR UNLOCKED!");
       } else {
         this.tweens.add({
           targets: key,
-          x: cx + 76,
-          y: 305,
+          x: cx + 78,
+          y: 307,
           duration: 280,
           ease: "Back.easeOut",
           onComplete: () => this.animateKeyReveal(key),
@@ -243,43 +234,96 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  private createPicture(x: number, y: number): Phaser.GameObjects.Container {
+    const frame = this.addContainer(x, y);
+    frame.setAngle(-4);
+
+    const shadow = this.add.graphics();
+    shadow.fillStyle(C.ink, 0.18);
+    shadow.fillRoundedRect(-91, -67, 182, 142, 12);
+
+    const outer = this.add.graphics();
+    outer.fillStyle(C.wood, 1);
+    outer.lineStyle(4, C.ink, 1);
+    outer.fillRoundedRect(-88, -70, 176, 140, 10);
+    outer.strokeRoundedRect(-88, -70, 176, 140, 10);
+
+    const inner = this.add.graphics();
+    inner.fillStyle(0xf4d49a, 1);
+    inner.lineStyle(3, C.woodDark, 1);
+    inner.fillRoundedRect(-73, -55, 146, 110, 4);
+    inner.strokeRoundedRect(-73, -55, 146, 110, 4);
+
+    const art = this.createLandscapeArt();
+    art.setPosition(0, 2);
+
+    frame.add([shadow, outer, inner, art]);
+    return frame;
+  }
+
   private createLandscapeArt(): Phaser.GameObjects.Graphics {
     const g = this.add.graphics();
 
+    // Sky.
+    g.fillStyle(0x77c8e8, 1);
+    g.fillRoundedRect(-68, -50, 136, 100, 2);
+
     // Sun.
-    g.fillStyle(0xffa94d, 1);
-    g.fillCircle(28, -23, 18);
-    g.lineStyle(3, COLORS.ink, 1);
-    g.strokeCircle(28, -23, 18);
+    g.fillStyle(0xffc934, 1);
+    g.lineStyle(2, C.ink, 0.8);
+    g.fillCircle(28, -23, 16);
+    g.strokeCircle(28, -23, 16);
 
-    // Mountains.
-    g.fillStyle(0x4e9b70, 1);
+    // Clouds.
+    g.fillStyle(C.white, 0.92);
+    g.fillCircle(-42, -24, 10);
+    g.fillCircle(-31, -28, 13);
+    g.fillCircle(-19, -23, 9);
+    g.fillCircle(49, -29, 10);
+    g.fillCircle(59, -26, 13);
+
+    // Far mountains.
+    g.fillStyle(C.mountain, 1);
     g.beginPath();
-    g.moveTo(-61, 38);
-    g.lineTo(-18, -14);
-    g.lineTo(6, 15);
-    g.lineTo(31, -7);
-    g.lineTo(68, 38);
+    g.moveTo(-68, 50);
+    g.lineTo(-23, -15);
+    g.lineTo(3, 20);
+    g.lineTo(32, -8);
+    g.lineTo(68, 50);
     g.closePath();
     g.fillPath();
 
-    g.fillStyle(0x2f765b, 1);
+    // Snow.
+    g.fillStyle(C.cream, 0.95);
     g.beginPath();
-    g.moveTo(-61, 38);
-    g.lineTo(-23, 5);
-    g.lineTo(0, 38);
+    g.moveTo(-23, -15);
+    g.lineTo(-9, 4);
+    g.lineTo(-19, 0);
+    g.lineTo(-28, 8);
     g.closePath();
     g.fillPath();
 
-    // Snow cap / highlight.
-    g.fillStyle(0xfff4d5, 1);
+    // Hills.
+    g.fillStyle(C.green, 1);
     g.beginPath();
-    g.moveTo(-18, -14);
-    g.lineTo(-7, 1);
-    g.lineTo(-17, -1);
-    g.lineTo(-23, 5);
+    g.moveTo(-68, 28);
+    g.quadraticBezierTo(-10, 2, 20, 34);
+    g.quadraticBezierTo(50, 18, 68, 34);
+    g.lineTo(68, 50);
+    g.lineTo(-68, 50);
     g.closePath();
     g.fillPath();
+
+    // Pine trees.
+    g.fillStyle(C.greenDark, 1);
+    for (const x of [-52, -42, 47, 58]) {
+      g.beginPath();
+      g.moveTo(x, 43);
+      g.lineTo(x + 8, 18);
+      g.lineTo(x + 16, 43);
+      g.closePath();
+      g.fillPath();
+    }
 
     return g;
   }
@@ -293,35 +337,51 @@ export class GameScene extends Phaser.Scene {
     const door = this.addContainer(cx, cy);
 
     const shadow = this.add.graphics();
-    shadow.fillStyle(COLORS.ink, 0.22);
-    shadow.fillRoundedRect(-width / 2 + 5, -height / 2 + 8, width, height, 12);
+    shadow.fillStyle(C.ink, 0.20);
+    shadow.fillRoundedRect(-width / 2 + 7, -height / 2 + 9, width, height, 14);
 
     const panel = this.add.graphics();
-    panel.fillStyle(COLORS.door, 1);
-    panel.lineStyle(4, COLORS.ink, 1);
-    panel.fillRoundedRect(-width / 2, -height / 2, width, height, 10);
-    panel.strokeRoundedRect(-width / 2, -height / 2, width, height, 10);
+    panel.fillStyle(C.blue, 1);
+    panel.lineStyle(4, C.ink, 1);
+    panel.fillRoundedRect(-width / 2, -height / 2, width, height, 13);
+    panel.strokeRoundedRect(-width / 2, -height / 2, width, height, 13);
 
-    // Door inset.
-    panel.lineStyle(3, COLORS.doorDark, 1);
-    panel.strokeRoundedRect(-width / 2 + 15, -height / 2 + 15, width - 30, height - 30, 7);
+    // Raised door panels.
+    panel.lineStyle(3, C.blueDark, 1);
+    panel.strokeRoundedRect(-width / 2 + 18, -height / 2 + 18, width - 36, height * 0.40, 8);
+    panel.strokeRoundedRect(-width / 2 + 18, 12, width - 36, height * 0.40, 8);
 
-    // Large lock plate.
-    panel.fillStyle(0xfff1c4, 1);
-    panel.lineStyle(3, COLORS.ink, 1);
-    panel.fillRoundedRect(-25, -18, 50, 62, 12);
-    panel.strokeRoundedRect(-25, -18, 50, 62, 12);
+    // Vertical wood grain.
+    panel.lineStyle(2, C.blueDark, 0.45);
+    for (const x of [-width / 2 + 42, -width / 2 + 76, width / 2 - 45]) {
+      panel.beginPath();
+      panel.moveTo(x, -height / 2 + 28);
+      panel.lineTo(x, height / 2 - 28);
+      panel.strokePath();
+    }
 
-    // Lock shackle.
-    panel.lineStyle(8, COLORS.ink, 1);
+    // Large gold lock.
+    panel.fillStyle(C.gold, 1);
+    panel.lineStyle(4, C.ink, 1);
+    panel.fillCircle(0, -24, 27);
+    panel.strokeCircle(0, -24, 27);
+
+    panel.lineStyle(8, C.ink, 1);
     panel.beginPath();
-    panel.arc(0, -16, 15, Math.PI, 0, false);
+    panel.arc(0, -31, 15, Math.PI, 0, false);
     panel.strokePath();
 
-    // Keyhole.
-    panel.fillStyle(COLORS.ink, 1);
-    panel.fillCircle(0, 13, 7);
-    panel.fillRect(-3, 13, 6, 13);
+    panel.fillStyle(C.ink, 1);
+    panel.fillCircle(0, -23, 6);
+    panel.fillRect(-3, -23, 6, 15);
+
+    // Handle.
+    panel.fillStyle(C.gold, 1);
+    panel.lineStyle(3, C.ink, 1);
+    panel.fillRoundedRect(27, 15, 30, 13, 6);
+    panel.strokeRoundedRect(27, 15, 30, 13, 6);
+    panel.fillRoundedRect(48, 4, 13, 35, 6);
+    panel.strokeRoundedRect(48, 4, 13, 35, 6);
 
     door.add([shadow, panel]);
     this.contentRoot.add(door);
@@ -331,67 +391,66 @@ export class GameScene extends Phaser.Scene {
   private createCharacter(x: number, y: number): Phaser.GameObjects.Container {
     const c = this.addContainer(x, y);
 
-    const shadow = this.add.ellipse(0, 65, 58, 15, COLORS.ink, 0.18);
+    const shadow = this.add.ellipse(0, 72, 68, 18, C.ink, 0.18);
+
     const legs = this.add.graphics();
-    legs.fillStyle(COLORS.pants, 1);
-    legs.lineStyle(3, COLORS.ink, 1);
-    legs.fillRoundedRect(-23, 26, 18, 40, 7);
-    legs.fillRoundedRect(5, 26, 18, 40, 7);
-    legs.strokeRoundedRect(-23, 26, 18, 40, 7);
-    legs.strokeRoundedRect(5, 26, 18, 40, 7);
+    legs.lineStyle(8, C.ink, 1);
+    legs.beginPath();
+    legs.moveTo(-13, 30);
+    legs.lineTo(-16, 73);
+    legs.moveTo(13, 30);
+    legs.lineTo(17, 73);
+    legs.strokePath();
 
     const body = this.add.graphics();
-    body.fillStyle(COLORS.shirt, 1);
-    body.lineStyle(3, COLORS.ink, 1);
-    body.fillRoundedRect(-29, -8, 58, 54, 18);
-    body.strokeRoundedRect(-29, -8, 58, 54, 18);
+    body.fillStyle(C.cream, 1);
+    body.lineStyle(4, C.ink, 1);
+    body.fillRoundedRect(-29, -2, 58, 52, 24);
+    body.strokeRoundedRect(-29, -2, 58, 52, 24);
 
     const head = this.add.graphics();
-    head.fillStyle(COLORS.skin, 1);
-    head.lineStyle(3, COLORS.ink, 1);
-    head.fillCircle(0, -35, 34);
-    head.strokeCircle(0, -35, 34);
+    head.fillStyle(C.cream, 1);
+    head.lineStyle(4, C.ink, 1);
+    head.fillCircle(0, -40, 39);
+    head.strokeCircle(0, -40, 39);
 
-    // Hair.
-    head.fillStyle(0x5a3b2e, 1);
+    // Hair tuft.
+    head.fillStyle(C.ink, 1);
     head.beginPath();
-    head.arc(0, -48, 31, Math.PI, 0, false);
+    head.arc(4, -69, 29, Math.PI * 1.05, Math.PI * 1.95, false);
     head.fillPath();
 
     // Eyes.
-    head.fillStyle(COLORS.white, 1);
-    head.fillCircle(-12, -36, 8);
-    head.fillCircle(12, -36, 8);
-    head.fillStyle(COLORS.ink, 1);
-    head.fillCircle(-10, -35, 3);
-    head.fillCircle(10, -35, 3);
+    head.fillStyle(C.white, 1);
+    head.fillCircle(-14, -43, 10);
+    head.fillCircle(14, -43, 10);
+    head.fillStyle(C.ink, 1);
+    head.fillCircle(-12, -41, 4);
+    head.fillCircle(12, -41, 4);
 
-    // Confused mouth.
-    head.lineStyle(3, COLORS.ink, 1);
+    // Confused eyebrows + mouth.
+    head.lineStyle(3, C.ink, 1);
     head.beginPath();
-    head.arc(0, -20, 8, Math.PI * 1.05, Math.PI * 1.95, false);
+    head.moveTo(-22, -58);
+    head.lineTo(-8, -62);
+    head.moveTo(8, -62);
+    head.lineTo(22, -58);
+    head.strokePath();
+    head.beginPath();
+    head.arc(0, -25, 9, Math.PI * 0.15, Math.PI * 0.85, false);
     head.strokePath();
 
-    // One hand scratching head.
+    // Scratching arm.
     const arm = this.add.graphics();
-    arm.lineStyle(8, COLORS.skin, 1);
+    arm.lineStyle(8, C.ink, 1);
     arm.beginPath();
-    arm.moveTo(24, 3);
-    arm.lineTo(39, -27);
-    arm.lineTo(27, -47);
+    arm.moveTo(24, 8);
+    arm.lineTo(43, -22);
+    arm.lineTo(30, -52);
     arm.strokePath();
 
     c.add([shadow, legs, body, head, arm]);
     this.contentRoot.add(c);
-
-    this.tweens.add({
-      targets: arm,
-      angle: { from: -3, to: 3 },
-      duration: 850,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut",
-    });
 
     return c;
   }
@@ -400,34 +459,34 @@ export class GameScene extends Phaser.Scene {
     const key = this.addContainer(x, y);
 
     const shadow = this.add.graphics();
-    shadow.fillStyle(COLORS.ink, 0.18);
-    shadow.fillCircle(3, 5, 13);
-    shadow.fillRoundedRect(9, 0, 35, 10, 4);
+    shadow.fillStyle(C.ink, 0.18);
+    shadow.fillCircle(4, 5, 17);
+    shadow.fillRoundedRect(13, 0, 48, 13, 5);
 
     const g = this.add.graphics();
-    g.fillStyle(COLORS.yellow, 1);
-    g.lineStyle(3, COLORS.ink, 1);
-    g.fillCircle(0, 0, 14);
-    g.strokeCircle(0, 0, 14);
-    g.fillRoundedRect(8, -5, 34, 10, 4);
-    g.strokeRoundedRect(8, -5, 34, 10, 4);
+    g.fillStyle(C.gold, 1);
+    g.lineStyle(4, C.ink, 1);
+    g.fillCircle(0, 0, 18);
+    g.strokeCircle(0, 0, 18);
+    g.fillRoundedRect(11, -6, 48, 12, 5);
+    g.strokeRoundedRect(11, -6, 48, 12, 5);
 
-    g.fillStyle(COLORS.cream, 1);
-    g.fillCircle(0, 0, 5);
+    g.fillStyle(C.cream, 1);
+    g.fillCircle(0, 0, 7);
 
-    g.fillStyle(COLORS.yellow, 1);
-    g.fillRect(27, -4, 5, 8);
-    g.fillRect(36, -4, 5, 8);
+    g.fillStyle(C.gold, 1);
+    g.fillRect(40, -5, 7, 10);
+    g.fillRect(51, -5, 7, 10);
 
     key.add([shadow, g]);
     return key;
   }
 
   private animateKeyReveal(key: Phaser.GameObjects.Container): void {
-    const glow = this.add.circle(key.x, key.y, 25, COLORS.yellow, 0.18).setDepth(key.depth - 1);
+    const glow = this.add.circle(key.x, key.y, 27, C.gold, 0.20).setDepth(key.depth - 1);
     this.tweens.add({
       targets: glow,
-      scale: 1.35,
+      scale: 1.4,
       alpha: 0,
       duration: 750,
       repeat: -1,
@@ -445,22 +504,22 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createDust(x: number, y: number): void {
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 10; i++) {
       const p = this.add.circle(
-        x + Phaser.Math.Between(-55, 55),
+        x + Phaser.Math.Between(-45, 45),
         y + Phaser.Math.Between(-8, 8),
         Phaser.Math.Between(2, 5),
-        0xf4d6b2,
+        0xd7a06c,
         0.7,
-      ).setDepth(20);
+      ).setDepth(30);
 
       this.tweens.add({
         targets: p,
-        x: p.x + Phaser.Math.Between(-30, 30),
-        y: p.y + Phaser.Math.Between(-25, 20),
+        x: p.x + Phaser.Math.Between(-35, 35),
+        y: p.y + Phaser.Math.Between(-25, 22),
         alpha: 0,
-        scale: 0.3,
-        duration: Phaser.Math.Between(350, 600),
+        scale: 0.25,
+        duration: Phaser.Math.Between(350, 650),
         onComplete: () => p.destroy(),
       });
     }
@@ -469,39 +528,38 @@ export class GameScene extends Phaser.Scene {
   private createGuardPuzzle(): void {
     const cx = this.DESIGN_WIDTH / 2;
 
-    this.createDoor(cx, 650, 142, 190);
-    this.createCharacter(cx + 90, 615);
+    this.createDoor(cx - 8, 640, 176, 238);
+    this.createCharacter(cx + 126, 650);
 
-    const guard = this.addContainer(cx - 75, 265);
+    const guard = this.addContainer(cx - 82, 250);
     const body = this.add.graphics();
-    body.fillStyle(0x7f91a8, 1);
-    body.lineStyle(3, COLORS.ink, 1);
-    body.fillRoundedRect(-38, 8, 76, 70, 22);
-    body.strokeRoundedRect(-38, 8, 76, 70, 22);
+    body.fillStyle(0x687b91, 1);
+    body.lineStyle(4, C.ink, 1);
+    body.fillRoundedRect(-39, 10, 78, 76, 24);
+    body.strokeRoundedRect(-39, 10, 78, 76, 24);
 
     const head = this.add.graphics();
-    head.fillStyle(COLORS.skin, 1);
-    head.lineStyle(3, COLORS.ink, 1);
-    head.fillCircle(0, -20, 34);
-    head.strokeCircle(0, -20, 34);
+    head.fillStyle(C.skin, 1);
+    head.lineStyle(4, C.ink, 1);
+    head.fillCircle(0, -20, 38);
+    head.strokeCircle(0, -20, 38);
 
-    head.lineStyle(3, COLORS.ink, 1);
+    head.fillStyle(C.ink, 1);
+    head.fillCircle(-12, -18, 4);
+    head.fillCircle(12, -18, 4);
+
+    head.lineStyle(3, C.ink, 1);
     head.beginPath();
-    head.moveTo(-14, -18);
-    head.lineTo(-5, -14);
-    head.moveTo(14, -18);
-    head.lineTo(5, -14);
+    head.moveTo(-18, -34);
+    head.lineTo(-5, -29);
+    head.moveTo(18, -34);
+    head.lineTo(5, -29);
     head.strokePath();
-
-    head.fillStyle(COLORS.ink, 1);
-    head.fillCircle(-12, -6, 2);
-    head.fillCircle(12, -6, 2);
 
     guard.add([body, head]);
     this.contentRoot.add(guard);
 
-    // Bottle.
-    const bottle = this.createBottle(cx - 105, 390);
+    const bottle = this.createBottle(cx - 112, 395);
     bottle.setInteractive({ useHandCursor: true });
     this.input.setDraggable(bottle);
 
@@ -514,12 +572,12 @@ export class GameScene extends Phaser.Scene {
 
     bottle.on("dragend", () => {
       if (bottle.y < 320) {
-        this.success("THE GUARD IS DISTRACTED!");
+        this.success("GUARD DISTRACTED!");
       } else {
         this.tweens.add({
           targets: bottle,
-          x: cx - 105,
-          y: 390,
+          x: cx - 112,
+          y: 395,
           duration: 250,
           ease: "Back.easeOut",
         });
@@ -529,21 +587,17 @@ export class GameScene extends Phaser.Scene {
 
   private createBottle(x: number, y: number): Phaser.GameObjects.Container {
     const bottle = this.addContainer(x, y);
-
-    const shadow = this.add.ellipse(0, 31, 42, 11, COLORS.ink, 0.18);
+    const shadow = this.add.ellipse(0, 34, 46, 12, C.ink, 0.18);
     const g = this.add.graphics();
 
-    g.fillStyle(0x8fd3f4, 1);
-    g.lineStyle(3, COLORS.ink, 1);
-    g.fillRoundedRect(-20, -20, 40, 55, 10);
-    g.strokeRoundedRect(-20, -20, 40, 55, 10);
-
-    g.fillStyle(0x8fd3f4, 1);
-    g.fillRoundedRect(-9, -34, 18, 17, 5);
-    g.strokeRoundedRect(-9, -34, 18, 17, 5);
-
-    g.fillStyle(0xfff0b8, 1);
-    g.fillRoundedRect(-17, -8, 34, 20, 5);
+    g.fillStyle(0x86cde1, 1);
+    g.lineStyle(4, C.ink, 1);
+    g.fillRoundedRect(-21, -20, 42, 56, 10);
+    g.strokeRoundedRect(-21, -20, 42, 56, 10);
+    g.fillRoundedRect(-9, -37, 18, 18, 5);
+    g.strokeRoundedRect(-9, -37, 18, 18, 5);
+    g.fillStyle(0xffe5a6, 1);
+    g.fillRoundedRect(-17, -7, 34, 21, 5);
 
     bottle.add([shadow, g]);
     this.contentRoot.add(bottle);
@@ -552,16 +606,19 @@ export class GameScene extends Phaser.Scene {
 
   private createDoorPuzzle(): void {
     const cx = this.DESIGN_WIDTH / 2;
-    const doorXs = [cx - 112, cx, cx + 112];
+    const xs = [cx - 105, cx, cx + 105];
 
-    doorXs.forEach((x) => {
-      const door = this.createDoor(x, 330, 84, 148);
+    xs.forEach((x) => {
+      const door = this.createDoor(x, 380, 82, 150);
       const panel = door.list[1] as Phaser.GameObjects.Graphics;
-      panel.setInteractive(new Phaser.Geom.Rectangle(-42, -74, 84, 148), Phaser.Geom.Rectangle.Contains);
+      panel.setInteractive(
+        new Phaser.Geom.Rectangle(-41, -75, 82, 150),
+        Phaser.Geom.Rectangle.Contains,
+      );
       panel.on("pointerdown", () => {
         this.tweens.add({
           targets: door,
-          x: x + 5,
+          x: x + 6,
           duration: 45,
           yoyo: true,
           repeat: 3,
@@ -569,21 +626,24 @@ export class GameScene extends Phaser.Scene {
       });
     });
 
-    // The trick is visual: the character is looking above the doors.
-    this.createCharacter(cx, 610);
+    this.createCharacter(cx + 110, 670);
 
-    const ceilingExit = this.add.graphics();
-    ceilingExit.fillStyle(COLORS.cream, 1);
-    ceilingExit.lineStyle(3, COLORS.ink, 1);
-    ceilingExit.fillRoundedRect(cx - 62, 105, 124, 44, 12);
-    ceilingExit.strokeRoundedRect(cx - 62, 105, 124, 44, 12);
-    ceilingExit.fillStyle(COLORS.yellow, 1);
-    ceilingExit.fillCircle(cx, 127, 12);
-    ceilingExit.setInteractive(new Phaser.Geom.Rectangle(cx - 62, 105, 124, 44), Phaser.Geom.Rectangle.Contains);
-    ceilingExit.on("pointerdown", () => this.success("YOU FOUND THE FOURTH DOOR!"));
+    // A small, deliberately unexpected exit above the doors.
+    const exit = this.add.graphics();
+    exit.fillStyle(C.cream, 1);
+    exit.lineStyle(4, C.ink, 1);
+    exit.fillRoundedRect(cx - 55, 115, 110, 48, 12);
+    exit.strokeRoundedRect(cx - 55, 115, 110, 48, 12);
+    exit.fillStyle(C.gold, 1);
+    exit.fillCircle(cx, 139, 14);
+    exit.setInteractive(
+      new Phaser.Geom.Rectangle(cx - 55, 115, 110, 48),
+      Phaser.Geom.Rectangle.Contains,
+    );
+    exit.on("pointerdown", () => this.success("YOU FOUND IT!"));
 
     this.tweens.add({
-      targets: ceilingExit,
+      targets: exit,
       y: "-=3",
       alpha: { from: 0.75, to: 1 },
       duration: 900,
@@ -595,14 +655,22 @@ export class GameScene extends Phaser.Scene {
 
   private showVisualHint(): void {
     if (this.level === 1) {
-      const frame = this.contentRoot.list.find(
-        (child) => child instanceof Phaser.GameObjects.Container && Math.abs(child.x - this.DESIGN_WIDTH / 2) < 2,
+      const picture = this.contentRoot.list.find(
+        (child) => child instanceof Phaser.GameObjects.Container &&
+          Math.abs(child.x - this.DESIGN_WIDTH / 2) < 2 &&
+          Math.abs(child.y - 235) < 8,
       );
-      if (frame) {
-        this.tweens.add({ targets: frame, angle: 3, duration: 120, yoyo: true, repeat: 4 });
+      if (picture) {
+        this.tweens.add({ targets: picture, angle: 3, duration: 120, yoyo: true, repeat: 5 });
       }
     } else if (this.level === 2) {
-      this.tweens.add({ targets: this.contentRoot.list.find((child) => child instanceof Phaser.GameObjects.Container), x: "+=5", duration: 120, yoyo: true, repeat: 4 });
+      const bottle = this.contentRoot.list.find(
+        (child) => child instanceof Phaser.GameObjects.Container &&
+          Math.abs(child.x - (this.DESIGN_WIDTH / 2 - 112)) < 5,
+      );
+      if (bottle) {
+        this.tweens.add({ targets: bottle, scale: 1.12, duration: 140, yoyo: true, repeat: 4 });
+      }
     } else {
       this.tweens.add({
         targets: this.contentRoot,
@@ -618,10 +686,10 @@ export class GameScene extends Phaser.Scene {
     const { width, height } = this.scale;
 
     const overlay = this.add
-      .rectangle(width / 2, height / 2, width, height, 0x07111f, 0.68)
+      .rectangle(width / 2, height / 2, width, height, 0x3a2525, 0.64)
       .setDepth(100);
 
-    this.add.text(width / 2, height / 2 + 5, message, {
+    this.add.text(width / 2, height / 2 - 20, message, {
       fontFamily: "Fredoka",
       fontSize: "26px",
       fontStyle: "700",
@@ -631,17 +699,17 @@ export class GameScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(101);
 
     const nextLevel = this.level < 3 ? this.level + 1 : 1;
-    const button = this.add.container(width / 2, height / 2 + 105).setDepth(101);
+    const button = this.add.container(width / 2, height / 2 + 75).setDepth(101);
 
     const shadow = this.add.graphics();
-    shadow.fillStyle(0x8f6a12, 0.9);
-    shadow.fillRoundedRect(-96, -31 + 7, 192, 62, 12);
+    shadow.fillStyle(C.goldDark, 0.85);
+    shadow.fillRoundedRect(-96, -31 + 7, 192, 62, 14);
 
     const plate = this.add.graphics();
-    plate.fillStyle(COLORS.yellow, 1);
-    plate.lineStyle(3, COLORS.ink, 1);
-    plate.fillRoundedRect(-96, -31, 192, 62, 12);
-    plate.strokeRoundedRect(-96, -31, 192, 62, 12);
+    plate.fillStyle(C.gold, 1);
+    plate.lineStyle(4, C.ink, 1);
+    plate.fillRoundedRect(-96, -31, 192, 62, 14);
+    plate.strokeRoundedRect(-96, -31, 192, 62, 14);
 
     const label = this.add.text(
       0,
@@ -651,7 +719,7 @@ export class GameScene extends Phaser.Scene {
         fontFamily: "Nunito",
         fontSize: "19px",
         fontStyle: "900",
-        color: "#2D2424",
+        color: "#3A2525",
       },
     ).setOrigin(0.5);
 
@@ -670,29 +738,11 @@ export class GameScene extends Phaser.Scene {
 
     this.tweens.add({
       targets: button,
-      scale: 1.04,
+      scale: 1.035,
       duration: 650,
       yoyo: true,
       repeat: -1,
       ease: "Sine.easeInOut",
     });
-
-    for (let i = 0; i < 18; i++) {
-      const particle = this.add.circle(
-        width / 2,
-        height / 2,
-        Phaser.Math.Between(3, 7),
-        Phaser.Utils.Array.GetRandom([0xffd93d, 0x60a5fa, 0xf472b6, 0x34d399]),
-      ).setDepth(102);
-
-      this.tweens.add({
-        targets: particle,
-        x: Phaser.Math.Between(20, width - 20),
-        y: Phaser.Math.Between(80, height - 80),
-        alpha: 0,
-        duration: Phaser.Math.Between(550, 1000),
-        onComplete: () => particle.destroy(),
-      });
-    }
   }
 }
