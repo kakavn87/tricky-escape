@@ -128,42 +128,6 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  private addText(
-    x: number,
-    y: number,
-    text: string,
-    style: Phaser.Types.GameObjects.Text.TextStyle,
-  ): Phaser.GameObjects.Text {
-    const obj = this.add.text(x, y, text, style);
-    this.contentRoot.add(obj);
-    return obj;
-  }
-
-  private addRect(
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    color: number,
-    alpha = 1,
-  ): Phaser.GameObjects.Rectangle {
-    const obj = this.add.rectangle(x, y, width, height, color, alpha);
-    this.contentRoot.add(obj);
-    return obj;
-  }
-
-  private addCircle(
-    x: number,
-    y: number,
-    radius: number,
-    color: number,
-    alpha = 1,
-  ): Phaser.GameObjects.Arc {
-    const obj = this.add.circle(x, y, radius, color, alpha);
-    this.contentRoot.add(obj);
-    return obj;
-  }
-
   private addContainer(x: number, y: number): Phaser.GameObjects.Container {
     const obj = this.add.container(x, y);
     this.contentRoot.add(obj);
@@ -213,7 +177,6 @@ export class GameScene extends Phaser.Scene {
     key.setVisible(false);
     key.setPosition(cx + 76, 305);
     this.contentRoot.add(key);
-    this.keyObject = key;
 
     // Gentle visual affordance, not explanatory text.
     const frameGlow = this.add.graphics();
@@ -405,7 +368,6 @@ export class GameScene extends Phaser.Scene {
     // One hand scratching head.
     const arm = this.add.graphics();
     arm.lineStyle(8, COLORS.skin, 1);
-    arm.lineCap = 1;
     arm.beginPath();
     arm.moveTo(24, 3);
     arm.lineTo(39, -27);
