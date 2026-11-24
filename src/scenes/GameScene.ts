@@ -15,7 +15,6 @@ export class GameScene extends Phaser.Scene {
   private feedback?: Phaser.GameObjects.Text;
   private contentRoot!: Phaser.GameObjects.Container;
   private safeArea!: SafeArea;
-  private topBar!: TopBar;
 
   private readonly DESIGN_WIDTH = 390;
   private readonly DESIGN_HEIGHT = 760;
@@ -110,7 +109,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createHud(): void {
-    this.topBar = new TopBar(this, {
+    new TopBar(this, {
       level: this.level,
       onMenu: () => this.scene.start("MenuScene"),
       onHint: () => {
