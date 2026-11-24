@@ -558,6 +558,7 @@ export class GameScene extends Phaser.Scene {
     this.contentRoot.add(guard);
 
     const bottle = this.createBottle(cx - 112, 395);
+    bottle.setSize(58, 76);
     bottle.setInteractive({ useHandCursor: true });
     this.input.setDraggable(bottle);
 
