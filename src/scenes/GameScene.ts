@@ -130,6 +130,31 @@ export class GameScene extends Phaser.Scene {
     const picture = this.add.rectangle(0, 0, 172, 145, 0xf0cf86).setStrokeStyle(10, 0x8b5838);
     const art = this.add.text(0, -4, "🌄", { fontSize: "66px", fontFamily: "Arial" }).setOrigin(0.5);
     frame.add([shadow, picture, art]);
+
+    // Small visual clue: the key is visibly peeking out from behind the frame.
+    const keyClue = this.add.text(width / 2 + 78, 373, "🔑", {
+      fontSize: "18px",
+      fontFamily: "Arial",
+    }).setOrigin(0.5).setAlpha(0.9);
+
+    const tapHint = this.add.text(width / 2, 410, "👆  SOMETHING IS BEHIND THE PICTURE", {
+      fontFamily: "Nunito",
+      fontSize: "11px",
+      fontStyle: "900",
+      color: "#fff1c9",
+      backgroundColor: "#17243a",
+      padding: { left: 9, right: 9, top: 6, bottom: 6 },
+    }).setOrigin(0.5);
+
+    this.tweens.add({
+      targets: [frame, keyClue],
+      y: "-=4",
+      duration: 650,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
+
     picture.setInteractive({ useHandCursor: true }).on("pointerdown", () => {
       if (this.keyTaken) return;
       this.tweens.add({
@@ -139,8 +164,10 @@ export class GameScene extends Phaser.Scene {
         yoyo: true,
         repeat: 2,
         onComplete: () => {
+          keyClue.setVisible(false);
+          tapHint.setVisible(false);
           this.keyObject?.setVisible(true);
-          this.showFeedback("Something fell behind the picture!");
+          this.showFeedback("You found it! Now drag the key to the EXIT door.");
         },
       });
     });
