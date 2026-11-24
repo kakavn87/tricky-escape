@@ -4,7 +4,7 @@ import { MenuScene } from "./scenes/MenuScene";
 import { GameScene } from "./scenes/GameScene";
 import "./style.css";
 
-const config: Phaser.Types.Core.GameConfig = {
+const config = {
   type: Phaser.AUTO,
   parent: "app",
   backgroundColor: "#FAF6F0",
@@ -26,7 +26,7 @@ const config: Phaser.Types.Core.GameConfig = {
     activePointers: 2,
   },
   scene: [BootScene, MenuScene, GameScene],
-};
+} as Phaser.Types.Core.GameConfig & { resolution: number };
 
 const startGame = (): void => {
   new Phaser.Game(config);
